@@ -41,8 +41,8 @@ import {
   getMonthName,
   validateDOB,
 } from "../utils/numerology";
+import { AdminPanel } from "./AdminPanel";
 import { NatalChart } from "./NatalChart";
-import { VedicAdminPanel } from "./VedicAdminPanel";
 import { YearChartGrid } from "./YearChartGrid";
 import { YearScrollPicker } from "./YearScrollPicker";
 
@@ -288,7 +288,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
     return (
       <>
         <Toaster position="top-right" />
-        <VedicAdminPanel onBack={() => setShowAdminPanel(false)} />
+        <AdminPanel onBack={() => setShowAdminPanel(false)} />
       </>
     );
   }
@@ -386,7 +386,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
               textShadow: "0 1px 8px oklch(0.62 0.12 75 / 0.25)",
             }}
           >
-            ✧ Vedic Numerology ✧
+            ✧ Numerology ✧
           </h1>
         </div>
         <p

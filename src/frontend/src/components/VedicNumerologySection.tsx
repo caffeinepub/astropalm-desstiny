@@ -43,7 +43,7 @@ export default function VedicNumerologySection({
             </div>
 
             <h2 className="section-heading text-3xl sm:text-4xl lg:text-5xl mb-4 leading-tight">
-              Vedic Numerology
+              Numerology
               <br />
               <span className="text-charcoal/60 font-light italic text-2xl sm:text-3xl">
                 Natal Chart Calculator
@@ -53,10 +53,10 @@ export default function VedicNumerologySection({
             <div className="celestial-divider max-w-xs mx-auto lg:mx-0 mb-5" />
 
             <p className="text-charcoal/70 text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto lg:mx-0">
-              Discover the cosmic blueprint of your life through Vedic
-              numerology. Your birth date holds hidden patterns — your Basic
-              Number, Destiny Number, Dasa cycles, and Annual Year vibrations
-              all encoded in a sacred 3×3 grid.
+              Discover the cosmic blueprint of your life through numerology.
+              Your birth date holds hidden patterns — your Basic Number, Destiny
+              Number, Dasa cycles, and Annual Year vibrations all encoded in a
+              sacred 3×3 grid.
             </p>
 
             <ul className="space-y-2 mb-8 text-sm text-charcoal/70 max-w-sm mx-auto lg:mx-0">
@@ -81,7 +81,7 @@ export default function VedicNumerologySection({
               whileTap={{ scale: 0.97 }}
               data-ocid="numerology.primary_button"
             >
-              <span>Explore Vedic Numerology</span>
+              <span>Explore Numerology</span>
               <span className="text-lg">🔢</span>
             </motion.button>
           </motion.div>
