@@ -22,6 +22,7 @@ import ServicesSection from "./components/ServicesSection";
 import SpecialUniqueServiceSection from "./components/SpecialUniqueServiceSection";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
+import NadiCardsPage from "./pages/NadiCardsPage";
 import NumerologyPage from "./pages/NumerologyPage";
 
 function HomePage() {
@@ -79,6 +80,48 @@ function HomePage() {
             </motion.div>
           </section>
 
+          {/* Nadi Cards Section */}
+          <section
+            id="nadi-cards"
+            className="py-16 flex flex-col items-center justify-center gap-6"
+            style={{ background: "#f5a623" }}
+          >
+            <motion.h2
+              className="text-3xl md:text-5xl font-display font-bold text-white tracking-wide"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Vedic Nadi Cards
+            </motion.h2>
+            <motion.p
+              className="text-white/80 text-center max-w-sm text-sm px-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              Ancient card reading system revealing planetary influences on your
+              destiny.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Button
+                size="lg"
+                onClick={() => navigate({ to: "/nadi-cards" })}
+                data-ocid="nadi_cards.home_button"
+                className="px-8 py-3 text-base font-semibold rounded-full"
+                style={{ background: "white", color: "#c0392b" }}
+              >
+                Open Nadi Cards
+              </Button>
+            </motion.div>
+          </section>
           <section id="courses">
             <CoursesSection />
           </section>
@@ -115,7 +158,17 @@ const numerologyRoute = createRoute({
   component: NumerologyPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, numerologyRoute]);
+const nadiCardsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/nadi-cards",
+  component: NadiCardsPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  numerologyRoute,
+  nadiCardsRoute,
+]);
 const history = createBrowserHistory();
 const router = createRouter({ routeTree, history });
 
