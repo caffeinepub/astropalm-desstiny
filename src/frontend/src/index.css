@@ -1,0 +1,150 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Spiritual Light Palette */
+    --background: 0.975 0.008 85;
+    --foreground: 0.22 0.015 60;
+
+    --card: 0.99 0.005 80;
+    --card-foreground: 0.22 0.015 60;
+
+    --popover: 0.99 0.005 80;
+    --popover-foreground: 0.22 0.015 60;
+
+    --primary: 0.62 0.09 75;
+    --primary-foreground: 0.99 0.005 80;
+
+    --secondary: 0.93 0.018 280;
+    --secondary-foreground: 0.35 0.04 280;
+
+    --muted: 0.95 0.01 85;
+    --muted-foreground: 0.52 0.02 70;
+
+    --accent: 0.88 0.025 280;
+    --accent-foreground: 0.35 0.04 280;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.88 0.02 80;
+    --input: 0.88 0.02 80;
+    --ring: 0.62 0.09 75;
+
+    --chart-1: 0.646 0.222 41.116;
+    --chart-2: 0.6 0.118 184.704;
+    --chart-3: 0.398 0.07 227.392;
+    --chart-4: 0.828 0.189 84.429;
+    --chart-5: 0.769 0.188 70.08;
+
+    --sidebar: 0.985 0 0;
+    --sidebar-foreground: 0.145 0 0;
+    --sidebar-primary: 0.205 0 0;
+    --sidebar-primary-foreground: 0.985 0 0;
+    --sidebar-accent: 0.97 0 0;
+    --sidebar-accent-foreground: 0.205 0 0;
+    --sidebar-border: 0.922 0 0;
+    --sidebar-ring: 0.708 0 0;
+
+    /* Custom spiritual tokens */
+    --cream: 0.975 0.008 85;
+    --gold: 0.72 0.1 75;
+    --gold-dark: 0.58 0.1 72;
+    --sage: 0.65 0.07 155;
+    --sage-dark: 0.52 0.08 155;
+    --lavender: 0.88 0.03 280;
+    --lavender-dark: 0.78 0.05 280;
+    --charcoal: 0.22 0.015 60;
+  }
+
+  .dark {
+    --background: 0.18 0.015 60;
+    --foreground: 0.95 0.008 85;
+    --card: 0.22 0.015 60;
+    --card-foreground: 0.95 0.008 85;
+    --popover: 0.22 0.015 60;
+    --popover-foreground: 0.95 0.008 85;
+    --primary: 0.72 0.1 75;
+    --primary-foreground: 0.18 0.015 60;
+    --secondary: 0.28 0.02 280;
+    --secondary-foreground: 0.88 0.025 280;
+    --muted: 0.28 0.015 60;
+    --muted-foreground: 0.65 0.015 70;
+    --accent: 0.32 0.03 280;
+    --accent-foreground: 0.88 0.025 280;
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.205 0 0;
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 15%;
+    --ring: 0.72 0.1 75;
+    --sidebar: 0.205 0 0;
+    --sidebar-foreground: 0.985 0 0;
+    --sidebar-primary: 0.488 0.243 264.376;
+    --sidebar-primary-foreground: 0.985 0 0;
+    --sidebar-accent: 0.269 0 0;
+    --sidebar-accent-foreground: 0.985 0 0;
+    --sidebar-border: 1 0 0 / 10%;
+    --sidebar-ring: 0.439 0 0;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Cormorant Garamond", serif;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply bg-gold text-cream-bg font-medium px-6 py-2.5 rounded-sm transition-all duration-200 hover:bg-gold-dark hover:shadow-md hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-sage {
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium text-white transition-all duration-200 cursor-pointer bg-sage hover:bg-sage-dark hover:shadow-md hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-outline-gold {
+    @apply border border-gold text-gold-dark font-medium px-6 py-2.5 rounded-sm transition-all duration-200 hover:bg-gold hover:text-white hover:shadow-md hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .section-heading {
+    font-family: "Cormorant Garamond", serif;
+    @apply text-4xl font-semibold text-gold-dark tracking-wide;
+  }
+
+  .section-subheading {
+    @apply text-muted-foreground text-lg font-light mt-2;
+  }
+
+  .celestial-divider {
+    @apply w-full h-px bg-gradient-to-r from-transparent via-gold to-transparent my-2 opacity-50;
+  }
+}
