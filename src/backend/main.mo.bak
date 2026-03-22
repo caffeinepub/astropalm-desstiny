@@ -272,13 +272,11 @@ actor {
     if (adminUsername != ADMIN_USER or adminPassword != ADMIN_PASS) {
       Runtime.trap("Admin credentials required");
     };
-    switch (numerologyUsers.get(username)) {
-      case (?_) { Runtime.trap("User already exists") };
-      case (null) {
-        let newUser : NumerologyUser = { username; passwordHash = password; sectionLevel };
-        numerologyUsers.add(username, newUser);
-      };
+    if (numerologyUsers.containsKey(username)) {
+      Runtime.trap("User already exists");
     };
+    let newUser : NumerologyUser = { username; passwordHash = password; sectionLevel };
+    numerologyUsers.add(username, newUser);
   };
 
   public query func listUsers(adminUsername : Text, adminPassword : Text) : async [NumerologyUser] {
@@ -292,9 +290,8 @@ actor {
     if (adminUsername != ADMIN_USER or adminPassword != ADMIN_PASS) {
       Runtime.trap("Not Authorized");
     };
-    switch (numerologyUsers.get(username)) {
-      case (?_) { numerologyUsers.remove(username) };
-      case (null) {};
+    if (numerologyUsers.containsKey(username)) {
+      numerologyUsers.remove(username);
     };
   };
 };

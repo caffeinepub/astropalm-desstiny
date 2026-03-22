@@ -45,6 +45,7 @@ import {
 } from "../utils/numerology";
 import { AdminPanel } from "./AdminPanel";
 import { NatalChart } from "./NatalChart";
+import { PredictTab } from "./PredictTab";
 import { YearChartGrid } from "./YearChartGrid";
 import { YearScrollPicker } from "./YearScrollPicker";
 
@@ -417,30 +418,37 @@ function AppInner({ onClose }: { onClose?: () => void }) {
             <TabsTrigger
               value="new"
               data-ocid="vedic_new_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-1"
+              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
             >
               New
             </TabsTrigger>
             <TabsTrigger
               value="saved"
               data-ocid="vedic_saved_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-1"
+              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
             >
               Saved
             </TabsTrigger>
             <TabsTrigger
               value="comparison"
               data-ocid="vedic_comparison_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-1"
+              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
             >
               Compare
             </TabsTrigger>
             <TabsTrigger
               value="monthdays"
               data-ocid="vedic_monthdays_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-1"
+              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
             >
               Months
+            </TabsTrigger>
+            <TabsTrigger
+              value="predict"
+              data-ocid="vedic_predict_tab.tab"
+              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
+            >
+              Predict
             </TabsTrigger>
           </TabsList>
 
@@ -1381,6 +1389,11 @@ function AppInner({ onClose }: { onClose?: () => void }) {
                 </div>
               )}
             </motion.div>
+          </TabsContent>
+
+          {/* Predict Tab */}
+          <TabsContent value="predict" className="mt-0">
+            <PredictTab onOpenLogin={() => setLoginOpen(true)} />
           </TabsContent>
         </Tabs>
       </main>

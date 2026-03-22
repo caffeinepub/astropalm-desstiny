@@ -1,11 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useActor } from "./useActor";
 
-const ADMIN_USERNAME = "vikaskharb00007@gmail.com";
-const ADMIN_PASSWORD = "Vikas00007@admin";
 const CHARTS_KEY = "vedic_saved_charts";
-
-// ─── Chart type (localStorage-backed) ──────────────────────────────────────
+const USERS_KEY = "vedic_admin_users";
 
 export interface Chart {
   id: bigint;
@@ -105,36 +101,49 @@ export function useDeleteChart() {
   });
 }
 
-// ─── Auth Hooks ──────────────────────────────────────────────────────────────
+export interface NumerologyUser {
+  username: string;
+  passwordHash: string;
+  sectionLevel: number;
+}
+
+function loadUsers(): NumerologyUser[] {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as NumerologyUser[];
+  } catch {
+    return [];
+  }
+}
+
+function saveUsers(users: NumerologyUser[]) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
 
 export function useLoginUser() {
-  const { actor } = useActor();
   return useMutation({
     mutationFn: async ({
       username,
       password,
     }: { username: string; password: string }) => {
-      if (!actor) throw new Error("Actor not ready");
-      const level = await (actor as any).login(username, password);
-      return Number(level);
+      const users = loadUsers();
+      const user = users.find((u) => u.username === username);
+      if (!user) throw new Error("User not found");
+      if (user.passwordHash !== password) throw new Error("Incorrect password");
+      return user.sectionLevel;
     },
   });
 }
 
 export function useListUsers() {
-  const { actor, isFetching } = useActor();
   return useQuery({
     queryKey: ["vedic_admin", "users"],
-    queryFn: async () => {
-      if (!actor) return [];
-      return (actor as any).listUsers(ADMIN_USERNAME, ADMIN_PASSWORD);
-    },
-    enabled: !!actor && !isFetching,
+    queryFn: () => loadUsers(),
   });
 }
 
 export function useCreateUser() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -142,14 +151,11 @@ export function useCreateUser() {
       password,
       sectionLevel,
     }: { username: string; password: string; sectionLevel: number }) => {
-      if (!actor) throw new Error("Actor not ready");
-      return (actor as any).createUser(
-        ADMIN_USERNAME,
-        ADMIN_PASSWORD,
-        username,
-        password,
-        BigInt(sectionLevel),
-      );
+      const users = loadUsers();
+      if (users.find((u) => u.username === username)) {
+        throw new Error("User already exists");
+      }
+      saveUsers([...users, { username, passwordHash: password, sectionLevel }]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
@@ -158,16 +164,10 @@ export function useCreateUser() {
 }
 
 export function useDeleteUser() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (username: string) => {
-      if (!actor) throw new Error("Actor not ready");
-      return (actor as any).deleteUser(
-        ADMIN_USERNAME,
-        ADMIN_PASSWORD,
-        username,
-      );
+      saveUsers(loadUsers().filter((u) => u.username !== username));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
