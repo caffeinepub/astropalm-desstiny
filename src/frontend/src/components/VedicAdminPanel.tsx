@@ -16,7 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Plus, Trash2, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Loader2,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -36,6 +44,7 @@ export function VedicAdminPanel({ onBack }: VedicAdminPanelProps) {
 
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [newLevel, setNewLevel] = useState("2");
 
   async function handleCreate() {
@@ -143,18 +152,32 @@ export function VedicAdminPanel({ onBack }: VedicAdminPanelProps) {
               >
                 Password
               </Label>
-              <Input
-                data-ocid="vedic_admin.create_password.input"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Set a password"
-                className="font-body"
-                style={{
-                  background: "oklch(var(--input))",
-                  borderColor: "oklch(var(--border))",
-                }}
-              />
+              <div className="relative">
+                <Input
+                  data-ocid="vedic_admin.create_password.input"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Set a password"
+                  className="font-body pr-10"
+                  style={{
+                    background: "oklch(var(--input))",
+                    borderColor: "oklch(var(--border))",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label

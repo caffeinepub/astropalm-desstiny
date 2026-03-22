@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   BookOpen,
   ChevronDown,
+  Eye,
+  EyeOff,
   Loader2,
   Lock,
   LogIn,
@@ -107,6 +109,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginIsAdmin, setLoginIsAdmin] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showMonthGate, setShowMonthGate] = useState(false);
 
   const [p1Dob, setP1Dob] = useState<DOBState>({
@@ -1550,19 +1553,33 @@ function AppInner({ onClose }: { onClose?: () => void }) {
               >
                 Password
               </Label>
-              <Input
-                data-ocid="vedic_login_password.input"
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Password"
-                onKeyDown={(e) => e.key === "Enter" && handleLoginSubmit()}
-                className="font-body"
-                style={{
-                  background: "oklch(var(--input))",
-                  borderColor: "oklch(var(--border))",
-                }}
-              />
+              <div className="relative">
+                <Input
+                  data-ocid="vedic_login_password.input"
+                  type={showLoginPassword ? "text" : "password"}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Password"
+                  onKeyDown={(e) => e.key === "Enter" && handleLoginSubmit()}
+                  className="font-body pr-10"
+                  style={{
+                    background: "oklch(var(--input))",
+                    borderColor: "oklch(var(--border))",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((v) => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showLoginPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
             {loginError && (
               <p

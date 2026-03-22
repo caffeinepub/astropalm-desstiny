@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ADMIN_EMAIL = "vikaskharb50@gmail.com";
-const ADMIN_PASSWORD = "vikasadmin123@";
+const ADMIN_EMAIL = "vikaskharb00007@gmail.com";
+const ADMIN_PASSWORD = "Vikas00007@admin";
 const STORAGE_KEY = "vn_auth";
 
 export interface AuthState {

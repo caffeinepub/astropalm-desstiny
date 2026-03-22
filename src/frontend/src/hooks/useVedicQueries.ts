@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
 
-const ADMIN_USERNAME = "vikaskharb50@gmail.com";
-const ADMIN_PASSWORD = "vikasadmin123";
+const ADMIN_USERNAME = "vikaskharb00007@gmail.com";
+const ADMIN_PASSWORD = "Vikas00007@admin";
 const CHARTS_KEY = "vedic_saved_charts";
 
 // ─── Chart type (localStorage-backed) ──────────────────────────────────────

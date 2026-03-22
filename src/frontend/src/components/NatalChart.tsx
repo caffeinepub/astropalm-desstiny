@@ -16,7 +16,7 @@ interface NatalChartProps {
   hideHeader?: boolean;
 }
 
-// Color constants — use CSS vars where available, fallback literals for canvas
+// Color constants
 const GREEN_HEADER = "#2E8B57";
 const MONTH_COLOR = "#7c3aed";
 const DAY_COLOR = "#dc2626";
@@ -43,14 +43,11 @@ function CellWatermark({ compact }: { compact: boolean }) {
       className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
       style={{
         transform: "rotate(-28deg)",
-        gap: compact ? "2px" : "4px",
         userSelect: "none",
         zIndex: 0,
       }}
     >
       <span style={wStyle}>Viku Kharb</span>
-      <span style={wStyle}>Viku Kharb</span>
-      {!compact && <span style={wStyle}>Viku Kharb</span>}
     </span>
   );
 }
@@ -91,8 +88,8 @@ export function NatalChart({
           <div
             className="py-2.5 px-4 text-center font-display font-bold tracking-[0.2em] text-sm uppercase"
             style={{
-              background: "oklch(var(--natal-header))",
-              color: "oklch(var(--natal-header-fg))",
+              background: GREEN_HEADER,
+              color: "#ffffff",
             }}
           >
             NATAL CHART
@@ -102,7 +99,7 @@ export function NatalChart({
       <div
         className="grid grid-cols-3"
         style={{
-          border: "1.5px solid oklch(var(--natal-border))",
+          border: "1.5px solid #cbd5e1",
           borderTop: hideHeader || !yearLabel ? undefined : "none",
         }}
       >
@@ -126,11 +123,9 @@ export function NatalChart({
               className="relative flex items-center justify-center overflow-hidden"
               style={{
                 minHeight: cellMinHeight,
-                background: "oklch(var(--natal-cell-bg))",
-                borderRight:
-                  col < 2 ? "1px solid oklch(var(--natal-border))" : "none",
-                borderBottom:
-                  row < 2 ? "1px solid oklch(var(--natal-border))" : "none",
+                background: "#ffffff",
+                borderRight: col < 2 ? "1px solid #cbd5e1" : "none",
+                borderBottom: row < 2 ? "1px solid #cbd5e1" : "none",
               }}
             >
               <CellWatermark compact={compact} />

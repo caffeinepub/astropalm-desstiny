@@ -255,8 +255,8 @@ actor {
 
   // ── Vedic Numerology User Management ────────────────────────────────
 
-  let ADMIN_USER = "vikaskharb50@gmail.com";
-  let ADMIN_PASS = "vikasadmin123";
+  let ADMIN_USER = "vikaskharb00007@gmail.com";
+  let ADMIN_PASS = "Vikas00007@admin";
 
   public query func login(username : Text, password : Text) : async Nat {
     switch (numerologyUsers.get(username)) {
