@@ -791,7 +791,7 @@ export default function HoroscopePage() {
                 data-ocid="auth.primary_button"
                 onClick={() => login()}
                 disabled={loginStatus === "logging-in"}
-                className="text-xs border-primary/40 hover:bg-primary/10 flex items-center gap-1.5"
+                className="text-xs border-[#c8a96e] hover:bg-primary/10 flex items-center gap-1.5"
               >
                 {loginStatus === "logging-in" ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -847,7 +847,10 @@ export default function HoroscopePage() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
         <Tabs defaultValue="horoscope" className="space-y-4">
-          <TabsList className="flex w-full overflow-x-auto">
+          <TabsList
+            className="flex w-full overflow-x-auto"
+            style={{ "--tab-active-bg": "#2E8B57" } as React.CSSProperties}
+          >
             <TabsTrigger
               data-ocid="horoscope.tab"
               value="horoscope"
@@ -901,7 +904,7 @@ export default function HoroscopePage() {
             >
               <div className="rounded-xl border shadow-gold bg-card p-5 space-y-4">
                 <h2 className="font-semibold text-base text-foreground flex items-center gap-2">
-                  <Star className="w-4 h-4 text-primary" />
+                  <Star className="w-4 h-4 text-[#2E8B57]" />
                   Birth Details
                 </h2>
 
@@ -910,7 +913,10 @@ export default function HoroscopePage() {
                   <span className="text-sm text-muted-foreground font-medium">
                     Ayanamsa:
                   </span>
-                  <span className="px-4 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg">
+                  <span
+                    className="px-4 py-1.5 text-xs font-semibold text-white rounded-lg"
+                    style={{ background: "#2E8B57" }}
+                  >
                     KP Old
                   </span>
                 </div>
@@ -985,7 +991,7 @@ export default function HoroscopePage() {
                         data-ocid="geocode.button"
                         onClick={handleGeocode}
                         disabled={isGeocoding}
-                        className="shrink-0 border-primary/40 hover:bg-primary/10"
+                        className="shrink-0 border-[#c8a96e] hover:bg-primary/10"
                       >
                         {isGeocoding ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -1038,8 +1044,8 @@ export default function HoroscopePage() {
                   disabled={isCalculating}
                   className="w-full sm:w-auto text-sm font-semibold"
                   style={{
-                    background: "oklch(var(--primary))",
-                    color: "oklch(var(--primary-foreground))",
+                    background: "#2E8B57",
+                    color: "#ffffff",
                   }}
                 >
                   {isCalculating ? (
@@ -1070,7 +1076,7 @@ export default function HoroscopePage() {
                 <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
                   <div className="flex flex-wrap items-start gap-x-6 gap-y-1.5">
                     <div className="flex items-center gap-1.5">
-                      <Star className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <Star className="w-3.5 h-3.5 shrink-0 text-[#2E8B57]" />
                       <span className="text-xs text-muted-foreground">
                         DOB:
                       </span>
@@ -1127,7 +1133,12 @@ export default function HoroscopePage() {
                       variant="outline"
                       size="sm"
                       onClick={handleDownload}
-                      className="ml-auto text-xs border-primary/40 hover:bg-primary/10 flex items-center gap-1.5"
+                      className="ml-auto text-xs flex items-center gap-1.5"
+                      style={{
+                        background: "#2E8B57",
+                        color: "#ffffff",
+                        border: "none",
+                      }}
                     >
                       <Download className="w-3.5 h-3.5" />
                       Download Report
@@ -1136,7 +1147,7 @@ export default function HoroscopePage() {
                 </div>
 
                 {/* Birth Time Adjustment Controls */}
-                <div className="rounded-xl border border-primary/30 bg-card px-4 py-3 space-y-2">
+                <div className="rounded-xl border border-[#c8a96e] bg-card px-4 py-3 space-y-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-semibold text-foreground">
                       Adjust Birth Time
@@ -1188,7 +1199,7 @@ export default function HoroscopePage() {
                           onClick={() => setLabelMode("english")}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-l-md border transition-colors ${
                             labelMode === "english"
-                              ? "bg-primary text-primary-foreground border-primary"
+                              ? "bg-[#2E8B57] text-white border-[#2E8B57]"
                               : "bg-card text-muted-foreground border-border hover:bg-accent"
                           }`}
                         >
@@ -1200,7 +1211,7 @@ export default function HoroscopePage() {
                           onClick={() => setLabelMode("hindi")}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-r-md border-t border-r border-b transition-colors ${
                             labelMode === "hindi"
-                              ? "bg-primary text-primary-foreground border-primary"
+                              ? "bg-[#2E8B57] text-white border-[#2E8B57]"
                               : "bg-card text-muted-foreground border-border hover:bg-accent"
                           }`}
                           style={{
@@ -1246,7 +1257,7 @@ export default function HoroscopePage() {
                 </div>
 
                 {/* Event Selector */}
-                <div className="rounded-xl border border-primary/30 bg-card px-4 py-3 flex items-center gap-3">
+                <div className="rounded-xl border border-[#c8a96e] bg-card px-4 py-3 flex items-center gap-3">
                   <span
                     className="text-xs font-semibold text-foreground whitespace-nowrap"
                     style={{
@@ -1295,7 +1306,7 @@ export default function HoroscopePage() {
                 {/* Nadi Planet Numbers */}
                 <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-primary" />
+                    <Star className="w-4 h-4 text-[#2E8B57]" />
                     <h3 className="font-semibold text-sm text-foreground">
                       Nadi Planet Numbers
                     </h3>
@@ -1319,7 +1330,7 @@ export default function HoroscopePage() {
                 transition={{ delay: 0.3 }}
                 className="text-center py-16 text-muted-foreground"
               >
-                <Star className="w-12 h-12 mx-auto mb-4 text-primary/30" />
+                <Star className="w-12 h-12 mx-auto mb-4 text-[#2E8B57]/30" />
                 <p className="font-medium">
                   Enter birth details above and click{" "}
                   <strong>Calculate KP Chart</strong>
@@ -1339,7 +1350,7 @@ export default function HoroscopePage() {
                 {/* Planet Details */}
                 <div className="rounded-xl border border-border bg-card overflow-hidden">
                   <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                    <Star className="w-4 h-4 text-primary" />
+                    <Star className="w-4 h-4 text-[#2E8B57]" />
                     <span className="font-semibold text-sm">
                       Planet Details
                     </span>
@@ -1389,7 +1400,7 @@ export default function HoroscopePage() {
                 {/* House Cusps */}
                 <div className="rounded-xl border border-border bg-card overflow-hidden">
                   <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                    <Star className="w-4 h-4 text-primary" />
+                    <Star className="w-4 h-4 text-[#2E8B57]" />
                     <span className="font-semibold text-sm">House Cusps</span>
                   </div>
                   <div className="overflow-x-auto">
@@ -1430,7 +1441,7 @@ export default function HoroscopePage() {
               </>
             ) : (
               <div className="text-center py-16 text-muted-foreground">
-                <Star className="w-12 h-12 mx-auto mb-4 text-primary/30" />
+                <Star className="w-12 h-12 mx-auto mb-4 text-[#2E8B57]/30" />
                 <p className="font-medium">
                   Calculate a birth chart first to view planet and house details
                 </p>
@@ -1445,7 +1456,7 @@ export default function HoroscopePage() {
                 data-ocid="transit.empty_state"
                 className="text-center py-16 text-muted-foreground"
               >
-                <Star className="w-12 h-12 mx-auto mb-4 text-primary/30" />
+                <Star className="w-12 h-12 mx-auto mb-4 text-[#2E8B57]/30" />
                 <p className="font-medium">
                   Please calculate a birth chart first
                 </p>
@@ -1458,7 +1469,7 @@ export default function HoroscopePage() {
                 {/* Transit date/time controls */}
                 <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                   <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    <Star className="w-4 h-4 text-primary" />
+                    <Star className="w-4 h-4 text-[#2E8B57]" />
                     Transit Date
                   </h3>
                   <div className="flex flex-wrap items-end gap-4">
@@ -1624,7 +1635,7 @@ export default function HoroscopePage() {
                     className="rounded-xl border border-border bg-card overflow-hidden"
                   >
                     <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                      <Star className="w-4 h-4 text-primary" />
+                      <Star className="w-4 h-4 text-[#2E8B57]" />
                       <span className="font-semibold text-sm">
                         Transit Planet Positions — {transitDate}
                       </span>
@@ -1686,7 +1697,7 @@ export default function HoroscopePage() {
                 data-ocid="events.empty_state"
                 className="text-center py-16 text-muted-foreground"
               >
-                <Star className="w-12 h-12 mx-auto mb-4 text-primary/30" />
+                <Star className="w-12 h-12 mx-auto mb-4 text-[#2E8B57]/30" />
                 <p className="font-medium">
                   Calculate a birth chart first to view event analysis
                 </p>
@@ -1712,7 +1723,7 @@ export default function HoroscopePage() {
             >
               <div className="rounded-xl border shadow-gold bg-card p-5 space-y-4">
                 <h2 className="font-semibold text-base text-foreground flex items-center gap-2">
-                  <Star className="w-4 h-4 text-primary" />
+                  <Star className="w-4 h-4 text-[#2E8B57]" />
                   Horary Query Details / प्रश्न विवरण
                 </h2>
                 <p className="text-xs text-muted-foreground">
@@ -1794,7 +1805,7 @@ export default function HoroscopePage() {
                         data-ocid="horary_geocode.button"
                         onClick={handleHoraryGeocode}
                         disabled={isHoraryGeocoding}
-                        className="shrink-0 border-primary/40 hover:bg-primary/10"
+                        className="shrink-0 border-[#c8a96e] hover:bg-primary/10"
                       >
                         {isHoraryGeocoding ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -1861,7 +1872,7 @@ export default function HoroscopePage() {
                         onChange={(e) =>
                           updateHoraryForm("seed", e.target.value)
                         }
-                        className="text-lg font-bold border-primary/40 focus:border-primary"
+                        className="text-lg font-bold border-[#c8a96e] focus:border-primary"
                       />
                     </div>
                   </div>
@@ -1901,8 +1912,8 @@ export default function HoroscopePage() {
                   disabled={isHoraryCalc}
                   className="w-full sm:w-auto text-sm font-semibold"
                   style={{
-                    background: "oklch(var(--primary))",
-                    color: "oklch(var(--primary-foreground))",
+                    background: "#2E8B57",
+                    color: "#ffffff",
                   }}
                 >
                   {isHoraryCalc ? (
@@ -1933,7 +1944,7 @@ export default function HoroscopePage() {
                 <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
                   <div className="flex flex-wrap items-start gap-x-6 gap-y-1.5">
                     <div className="flex items-center gap-1.5">
-                      <Star className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <Star className="w-3.5 h-3.5 shrink-0 text-[#2E8B57]" />
                       <span className="text-xs text-muted-foreground">
                         Date:
                       </span>
@@ -2015,7 +2026,7 @@ export default function HoroscopePage() {
                           onClick={() => setHoraryLabelMode("english")}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-l-md border transition-colors ${
                             horaryLabelMode === "english"
-                              ? "bg-primary text-primary-foreground border-primary"
+                              ? "bg-[#2E8B57] text-white border-[#2E8B57]"
                               : "bg-card text-muted-foreground border-border hover:bg-accent"
                           }`}
                         >
@@ -2027,7 +2038,7 @@ export default function HoroscopePage() {
                           onClick={() => setHoraryLabelMode("hindi")}
                           className={`px-2.5 py-1 text-xs font-semibold rounded-r-md border-t border-r border-b transition-colors ${
                             horaryLabelMode === "hindi"
-                              ? "bg-primary text-primary-foreground border-primary"
+                              ? "bg-[#2E8B57] text-white border-[#2E8B57]"
                               : "bg-card text-muted-foreground border-border hover:bg-accent"
                           }`}
                           style={{
@@ -2076,7 +2087,7 @@ export default function HoroscopePage() {
                 {/* Nadi Planet Numbers */}
                 <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-primary" />
+                    <Star className="w-4 h-4 text-[#2E8B57]" />
                     <h3 className="font-semibold text-sm text-foreground">
                       Nadi Planet Numbers
                     </h3>
@@ -2110,7 +2121,7 @@ export default function HoroscopePage() {
                 data-ocid="horary.empty_state"
                 className="text-center py-16 text-muted-foreground"
               >
-                <Star className="w-12 h-12 mx-auto mb-4 text-primary/30" />
+                <Star className="w-12 h-12 mx-auto mb-4 text-[#2E8B57]/30" />
                 <p className="font-medium">
                   Enter query details and seed number above
                 </p>
