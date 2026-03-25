@@ -5,8 +5,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import {
   GRID_LAYOUT,
@@ -21,11 +19,52 @@ const CELL_BG = "#ffffff";
 const BASIC_COLOR = "#dc2626";
 const DESTINY_COLOR = "#16a34a";
 const NATAL_COLOR = "#000000";
-const DASA_COLOR = "#2563eb";
+const DASA_COLOR = "#ec4899";
 const YEAR_COLOR_TEXT = "#ffffff";
 const YEAR_BG = "rgba(22,163,74,0.88)";
 const MONTH_COLOR = "#7c3aed";
 const DAY_COLOR = "#ec4899";
+const SCALE = 4;
+
+const COLOR_LEGEND = [
+  { label: "Natal", color: NATAL_COLOR, bg: undefined },
+  { label: "Basic", color: BASIC_COLOR, bg: undefined },
+  { label: "Destiny", color: DESTINY_COLOR, bg: undefined },
+  { label: "Dasa", color: DASA_COLOR, bg: undefined },
+  { label: "Month", color: MONTH_COLOR, bg: undefined },
+  { label: "Day", color: DAY_COLOR, bg: undefined },
+  { label: "Year", color: YEAR_COLOR_TEXT, bg: YEAR_BG },
+];
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 interface DownloadChartDialogProps {
   open: boolean;
@@ -39,6 +78,11 @@ interface DownloadChartDialogProps {
   natalCellCounts: Record<number, number>;
   dasaNumber: number;
   yearNumber: number;
+  dob?: string; // "DD-MM-YYYY"
+}
+
+function formatDob(dob: string): string {
+  return dob.replace(/-/g, "/");
 }
 
 function formatDate(date: Date): string {
@@ -58,6 +102,46 @@ function enumerateDates(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
+function drawColorLegendBar(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+) {
+  const barH = 28;
+  ctx.fillStyle = "#f3f0e8";
+  ctx.fillRect(x, y, w, barH);
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = 0.75;
+  ctx.strokeRect(x, y, w, barH);
+
+  const itemW = w / COLOR_LEGEND.length;
+  ctx.font = "bold 9px Arial";
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < COLOR_LEGEND.length; i++) {
+    const item = COLOR_LEGEND[i];
+    const ix = x + i * itemW;
+    const dotSize = 10;
+    const dotX = ix + 6;
+    const dotY = y + barH / 2 - dotSize / 2;
+
+    if (item.bg) {
+      ctx.fillStyle = item.bg;
+    } else {
+      ctx.fillStyle = item.color;
+    }
+    ctx.fillRect(dotX, dotY, dotSize, dotSize);
+    ctx.strokeStyle = "rgba(0,0,0,0.15)";
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(dotX, dotY, dotSize, dotSize);
+
+    ctx.fillStyle = "#333";
+    ctx.textAlign = "left";
+    ctx.fillText(item.label, dotX + dotSize + 3, y + barH / 2);
+  }
+}
+
 function drawMiniChart(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -73,45 +157,40 @@ function drawMiniChart(
   dayNumber: number | undefined,
   headerLabel: string,
 ) {
-  const headerH = 24;
+  const headerH = 28;
   const gridH = h - headerH;
   const cellW = w / 3;
   const cellH = gridH / 3;
 
-  // Header
   ctx.fillStyle = GREEN_HEADER;
   ctx.fillRect(x, y, w, headerH);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 11px Arial";
+  ctx.font = "bold 12px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(headerLabel, x + w / 2, y + headerH / 2);
 
-  // Cells
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
       const cellNum = GRID_LAYOUT[row][col];
       const cx = x + col * cellW;
       const cy = y + headerH + row * cellH;
 
-      // Cell background
       ctx.fillStyle = CELL_BG;
       ctx.fillRect(cx, cy, cellW, cellH);
 
-      // Watermark
       ctx.save();
       ctx.translate(cx + cellW / 2, cy + cellH / 2);
       ctx.rotate(-0.49);
-      ctx.fillStyle = "rgba(150,120,60,0.12)";
-      ctx.font = "7px Arial";
+      ctx.fillStyle = "rgba(150,120,60,0.1)";
+      ctx.font = "8px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Viku Kharb", 0, 0);
       ctx.restore();
 
-      // Cell borders
       ctx.strokeStyle = BORDER_COLOR;
-      ctx.lineWidth = 0.5;
+      ctx.lineWidth = 0.75;
       if (col < 2) {
         ctx.beginPath();
         ctx.moveTo(cx + cellW, cy);
@@ -125,7 +204,6 @@ function drawMiniChart(
         ctx.stroke();
       }
 
-      // Numbers
       const count = cellCounts[cellNum] ?? 0;
       const display = getCellDisplay(cellNum, cellCounts);
       const isBasic = cellNum === basicNumber;
@@ -138,8 +216,8 @@ function drawMiniChart(
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const midX = cx + cellW / 2;
-      let midY = cy + cellH / 2;
 
+      // Collect all parts to render horizontally
       const parts: Array<{
         text: string;
         color: string;
@@ -161,15 +239,14 @@ function drawMiniChart(
           bold: true,
         });
       }
-      if (isDasa) {
+      if (isDasa)
         parts.push({
           text: String(dasaNumber),
           color: DASA_COLOR,
           bold: true,
           isDasa: true,
         });
-      }
-      if (isYear) {
+      if (isYear)
         parts.push({
           text: String(yearNumber),
           color: YEAR_COLOR_TEXT,
@@ -177,51 +254,87 @@ function drawMiniChart(
           bgColor: YEAR_BG,
           isYear: true,
         });
-      }
-      if (isMonth) {
+      if (isMonth)
         parts.push({
           text: String(monthNumber),
           color: MONTH_COLOR,
           bold: true,
         });
-      }
-      if (isDay) {
+      if (isDay)
         parts.push({
           text: String(dayNumber),
           color: DAY_COLOR,
           bold: true,
           italic: true,
         });
-      }
 
-      // Variable line heights — year biggest, dasa next, others normal
-      const getLineH = (part: (typeof parts)[0]) =>
-        part.isYear ? 18 : part.isDasa ? 16 : 14;
-      const totalH = parts.reduce((sum, p) => sum + getLineH(p), 0);
-      midY = cy + cellH / 2;
-      let startY = midY - totalH / 2;
+      if (parts.length === 0) continue;
 
+      // Draw parts horizontally centered in cell
+      const getFontSz = (part: (typeof parts)[0]) => {
+        const base = part.isYear ? 20 : part.isDasa ? 17 : 14;
+        const len = part.text.length;
+        return len <= 1
+          ? base
+          : len === 2
+            ? Math.round(base * 0.8)
+            : Math.round(base * 0.6);
+      };
+
+      // Measure total width
+      const gap = 4;
+      const widths: number[] = [];
       for (const part of parts) {
-        const lh = getLineH(part);
-        const fontSize = part.isYear ? 16 : part.isDasa ? 14 : 12;
-        ctx.font = `${part.italic ? "italic " : ""}${part.bold ? "bold " : ""}${fontSize}px Arial`;
-        const drawY = startY + lh / 2;
+        const sz = getFontSz(part);
+        ctx.font = `${part.italic ? "italic " : ""}${part.bold ? "bold " : ""}${sz}px Arial`;
+        widths.push(ctx.measureText(part.text).width);
+      }
+      const totalW =
+        widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1);
+      let startX = midX - totalW / 2;
+      const drawY = cy + cellH / 2;
+
+      for (let pi = 0; pi < parts.length; pi++) {
+        const part = parts[pi];
+        const sz = getFontSz(part);
+        ctx.font = `${part.italic ? "italic " : ""}${part.bold ? "bold " : ""}${sz}px Arial`;
+        const tw = widths[pi];
         if (part.bgColor) {
-          const tw = ctx.measureText(part.text).width + 6;
           ctx.fillStyle = part.bgColor;
-          ctx.fillRect(midX - tw / 2, startY, tw, lh);
+          ctx.fillRect(startX - 2, drawY - sz / 2 - 1, tw + 4, sz + 2);
         }
         ctx.fillStyle = part.color;
-        ctx.fillText(part.text, midX, drawY);
-        startY += lh;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(part.text, startX, drawY);
+        startX += tw + gap;
       }
     }
   }
 
-  // Outer border
   ctx.strokeStyle = BORDER_COLOR;
   ctx.lineWidth = 1;
   ctx.strokeRect(x, y + headerH, w, gridH);
+}
+
+function drawNatalSectionHeader(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+) {
+  const h = 24;
+  ctx.fillStyle = "#e8f5ee";
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = 0.75;
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = GREEN_HEADER;
+  ctx.font = "bold 11px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("NATAL CHART", x + w / 2, y + h / 2);
+  return h;
 }
 
 function generateMonthChartPNG(
@@ -233,47 +346,76 @@ function generateMonthChartPNG(
   natalCellCounts: Record<number, number>,
   dasaNumber: number,
   yearNumber: number,
+  dob: string,
 ): string {
   const periods = calculateMonthCycle(day, month, yearIter, yearNumber);
 
-  const cols = 4;
+  const cols = 3;
   const rows = Math.ceil(periods.length / cols);
-  const chartW = 200;
-  const chartH = 170;
-  const padding = 12;
-  const titleH = 36;
+  const chartW = 280;
+  const chartH = 230;
+  const padding = 14;
+  const titleH = 44;
+  const legendH = 36;
+  const natalSectionLabelH = 24;
+  const natalChartSize = 240;
+  const natalTotalH = natalSectionLabelH + natalChartSize + 8;
 
   const logicalW = cols * chartW + (cols + 1) * padding;
-  const logicalH = titleH + rows * chartH + (rows + 1) * padding;
+  const logicalH =
+    titleH + natalTotalH + rows * chartH + (rows + 1) * padding + legendH;
 
-  const scale = Math.max(window.devicePixelRatio || 2, 2);
   const canvas = document.createElement("canvas");
-  canvas.width = logicalW * scale;
-  canvas.height = logicalH * scale;
+  canvas.width = logicalW * SCALE;
+  canvas.height = logicalH * SCALE;
   const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
+  ctx.scale(SCALE, SCALE);
 
   ctx.fillStyle = "#f9f6f0";
   ctx.fillRect(0, 0, logicalW, logicalH);
 
-  // Title
+  // Title bar
   ctx.fillStyle = GREEN_HEADER;
   ctx.fillRect(0, 0, logicalW, titleH);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 16px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  ctx.font = "bold 11px Arial";
+  ctx.fillText(`DOB: ${formatDob(dob)}`, logicalW / 2, titleH * 0.32);
+  ctx.font = "bold 15px Arial";
   ctx.fillText(
-    `Year ${yearIter}\u2013${yearIter + 1} \u2014 Month Charts`,
+    `Month Charts \u2013 Year ${yearIter}\u2013${yearIter + 1}`,
     logicalW / 2,
-    titleH / 2,
+    titleH * 0.72,
   );
 
+  // Natal chart section at top
+  let natalY = titleH + 6;
+  drawNatalSectionHeader(ctx, 0, natalY, logicalW);
+  natalY += natalSectionLabelH;
+  const natalX = (logicalW - natalChartSize) / 2;
+  drawMiniChart(
+    ctx,
+    natalX,
+    natalY,
+    natalChartSize,
+    natalChartSize,
+    natalCellCounts,
+    basicNumber,
+    destinyNumber,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    "NATAL",
+  );
+
+  const monthsStartY = titleH + natalTotalH + padding;
   periods.forEach((period, idx) => {
     const col = idx % cols;
     const row = Math.floor(idx / cols);
     const x = padding + col * (chartW + padding);
-    const y = titleH + padding + row * (chartH + padding);
+    const y = monthsStartY + row * (chartH + padding);
     const label = `${formatDate(period.startDate)}\u2013${formatDate(period.endDate)}`;
     drawMiniChart(
       ctx,
@@ -292,10 +434,11 @@ function generateMonthChartPNG(
     );
   });
 
+  drawColorLegendBar(ctx, 0, logicalH - legendH, logicalW);
   return canvas.toDataURL("image/png");
 }
 
-function generateDayChartPNG(
+function generateDayChartPages(
   yearIter: number,
   day: number,
   month: number,
@@ -304,7 +447,8 @@ function generateDayChartPNG(
   natalCellCounts: Record<number, number>,
   dasaNumber: number,
   yearNumber: number,
-): string {
+  dob: string,
+): Array<{ dataUrl: string; filename: string; monthIndex: number }> {
   const periods = calculateMonthCycle(day, month, yearIter, yearNumber);
 
   type DayEntry = { date: Date; monthNumber: number; dayNumber: number };
@@ -320,62 +464,119 @@ function generateDayChartPNG(
     }
   }
 
+  const grouped = new Map<string, DayEntry[]>();
+  for (const entry of allDays) {
+    const key = `${entry.date.getFullYear()}-${entry.date.getMonth()}`;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(entry);
+  }
+
+  const pages: Array<{
+    dataUrl: string;
+    filename: string;
+    monthIndex: number;
+  }> = [];
+
   const cols = 4;
-  const rows = Math.ceil(allDays.length / cols);
-  const chartW = 170;
-  const chartH = 150;
-  const padding = 10;
-  const titleH = 36;
+  const chartW = 220;
+  const chartH = 180;
+  const padding = 12;
+  const titleH = 44;
+  const legendH = 36;
+  const natalSectionLabelH = 24;
+  const natalChartSize = 200;
+  const natalTotalH = natalSectionLabelH + natalChartSize + 8;
 
-  const logicalW = cols * chartW + (cols + 1) * padding;
-  const logicalH = titleH + rows * chartH + (rows + 1) * padding;
+  for (const [key, days] of grouped) {
+    const [yrStr, moStr] = key.split("-");
+    const yr = Number(yrStr);
+    const mo = Number(moStr);
+    const monthName = MONTH_NAMES[mo];
+    const rows = Math.ceil(days.length / cols);
+    const logicalW = cols * chartW + (cols + 1) * padding;
+    const logicalH =
+      titleH + natalTotalH + rows * chartH + (rows + 1) * padding + legendH;
 
-  const scale = Math.max(window.devicePixelRatio || 2, 2);
-  const canvas = document.createElement("canvas");
-  canvas.width = logicalW * scale;
-  canvas.height = logicalH * scale;
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = logicalW * SCALE;
+    canvas.height = logicalH * SCALE;
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(SCALE, SCALE);
 
-  ctx.fillStyle = "#f9f6f0";
-  ctx.fillRect(0, 0, logicalW, logicalH);
+    ctx.fillStyle = "#f9f6f0";
+    ctx.fillRect(0, 0, logicalW, logicalH);
 
-  ctx.fillStyle = GREEN_HEADER;
-  ctx.fillRect(0, 0, logicalW, titleH);
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 16px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    `Year ${yearIter}\u2013${yearIter + 1} \u2014 Day Charts`,
-    logicalW / 2,
-    titleH / 2,
-  );
+    // Title bar
+    ctx.fillStyle = GREEN_HEADER;
+    ctx.fillRect(0, 0, logicalW, titleH);
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 11px Arial";
+    ctx.fillText(`DOB: ${formatDob(dob)}`, logicalW / 2, titleH * 0.32);
+    ctx.font = "bold 15px Arial";
+    ctx.fillText(
+      `Day Chart \u2013 ${monthName} ${yr}`,
+      logicalW / 2,
+      titleH * 0.72,
+    );
 
-  allDays.forEach((entry, idx) => {
-    const col = idx % cols;
-    const row = Math.floor(idx / cols);
-    const x = padding + col * (chartW + padding);
-    const y = titleH + padding + row * (chartH + padding);
-    const label = formatDate(entry.date);
+    // Natal chart section at top
+    let natalY = titleH + 6;
+    drawNatalSectionHeader(ctx, 0, natalY, logicalW);
+    natalY += natalSectionLabelH;
+    const natalX = (logicalW - natalChartSize) / 2;
     drawMiniChart(
       ctx,
-      x,
-      y,
-      chartW,
-      chartH,
+      natalX,
+      natalY,
+      natalChartSize,
+      natalChartSize,
       natalCellCounts,
       basicNumber,
       destinyNumber,
-      dasaNumber,
-      yearNumber,
-      entry.monthNumber,
-      entry.dayNumber,
-      label,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "NATAL",
     );
-  });
 
-  return canvas.toDataURL("image/png");
+    const daysStartY = titleH + natalTotalH + padding;
+    days.forEach((entry, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      const x = padding + col * (chartW + padding);
+      const y = daysStartY + row * (chartH + padding);
+      const label = formatDate(entry.date);
+      drawMiniChart(
+        ctx,
+        x,
+        y,
+        chartW,
+        chartH,
+        natalCellCounts,
+        basicNumber,
+        destinyNumber,
+        dasaNumber,
+        yearNumber,
+        entry.monthNumber,
+        entry.dayNumber,
+        label,
+      );
+    });
+
+    drawColorLegendBar(ctx, 0, logicalH - legendH, logicalW);
+
+    const moShort = monthName.slice(0, 3).toLowerCase();
+    pages.push({
+      dataUrl: canvas.toDataURL("image/png"),
+      filename: `day-chart-${moShort}-${yr}.png`,
+      monthIndex: mo,
+    });
+  }
+
+  return pages;
 }
 
 function generateNatalChartPNG(
@@ -384,24 +585,39 @@ function generateNatalChartPNG(
   destinyNumber: number,
   dasaNumber: number,
   yearNumber: number,
+  dob: string,
 ): string {
-  const logicalSize = 450;
-  const scale = Math.max(window.devicePixelRatio || 2, 2);
+  const titleH = 44;
+  const legendH = 36;
+  const chartSize = 480;
+  const logicalW = chartSize;
+  const logicalH = titleH + chartSize + legendH;
+
   const canvas = document.createElement("canvas");
-  canvas.width = logicalSize * scale;
-  canvas.height = logicalSize * scale;
+  canvas.width = logicalW * SCALE;
+  canvas.height = logicalH * SCALE;
   const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
+  ctx.scale(SCALE, SCALE);
 
   ctx.fillStyle = "#f9f6f0";
-  ctx.fillRect(0, 0, logicalSize, logicalSize);
+  ctx.fillRect(0, 0, logicalW, logicalH);
+
+  ctx.fillStyle = GREEN_HEADER;
+  ctx.fillRect(0, 0, logicalW, titleH);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 11px Arial";
+  ctx.fillText(`DOB: ${formatDob(dob)}`, logicalW / 2, titleH * 0.32);
+  ctx.font = "bold 15px Arial";
+  ctx.fillText("Natal Chart", logicalW / 2, titleH * 0.72);
 
   drawMiniChart(
     ctx,
     0,
-    0,
-    logicalSize,
-    logicalSize,
+    titleH,
+    chartSize,
+    chartSize,
     natalCellCounts,
     basicNumber,
     destinyNumber,
@@ -412,88 +628,118 @@ function generateNatalChartPNG(
     "NATAL CHART",
   );
 
+  drawColorLegendBar(ctx, 0, titleH + chartSize, logicalW);
   return canvas.toDataURL("image/png");
 }
 
-export function generateYearRangeChartPNG(
-  fromYear: number,
-  toYear: number,
+function triggerDownload(dataUrl: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = filename;
+  a.click();
+}
+
+export function generateAllYearsPNG(
+  entries: Array<{
+    yearIter: number;
+    dasaNumber: number;
+    yearNumber: number;
+    yearLabel: string;
+  }>,
   day: number,
   month: number,
   basicNumber: number,
   destinyNumber: number,
   natalCellCounts: Record<number, number>,
-  dasaNumber: number,
+  dob: string,
 ): string {
-  const years: number[] = [];
-  for (let y = fromYear; y <= toYear; y++) years.push(y);
+  // day and month are used for context; kept for API consistency
+  void day;
+  void month;
 
-  const cols = 4;
-  const rows = Math.ceil(years.length / cols);
-  const chartW = 200;
-  const chartH = 170;
+  const MAX = 30;
+  const limited = entries.slice(0, MAX);
+
+  const cols = 3;
+  const cardW = 200;
+  const cardH = 220;
   const padding = 12;
-  const titleH = 36;
+  const titleH = 44;
+  const legendH = 36;
+  const natalSectionLabelH = 24;
+  const natalChartSize = 240;
+  const natalTotalH = natalSectionLabelH + natalChartSize + 8;
+  const rows = Math.ceil(limited.length / cols);
 
-  const logicalW = cols * chartW + (cols + 1) * padding;
-  const logicalH = titleH + rows * chartH + (rows + 1) * padding;
+  const logicalW = cols * cardW + (cols + 1) * padding;
+  const logicalH =
+    titleH + natalTotalH + rows * cardH + (rows + 1) * padding + legendH;
 
-  const scale = Math.max(window.devicePixelRatio || 2, 2);
   const canvas = document.createElement("canvas");
-  canvas.width = logicalW * scale;
-  canvas.height = logicalH * scale;
+  canvas.width = logicalW * SCALE;
+  canvas.height = logicalH * SCALE;
   const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
+  ctx.scale(SCALE, SCALE);
 
   ctx.fillStyle = "#f9f6f0";
   ctx.fillRect(0, 0, logicalW, logicalH);
 
+  // Title bar
   ctx.fillStyle = GREEN_HEADER;
   ctx.fillRect(0, 0, logicalW, titleH);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 16px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(
-    `Year Range ${fromYear}\u2013${toYear}`,
-    logicalW / 2,
-    titleH / 2,
+  ctx.font = "bold 11px Arial";
+  ctx.fillText(`DOB: ${formatDob(dob)}`, logicalW / 2, titleH * 0.32);
+  ctx.font = "bold 15px Arial";
+  ctx.fillText("Dasa & Year Charts", logicalW / 2, titleH * 0.72);
+
+  // Natal chart section at top
+  let natalY = titleH + 6;
+  drawNatalSectionHeader(ctx, 0, natalY, logicalW);
+  natalY += natalSectionLabelH;
+  const natalX = (logicalW - natalChartSize) / 2;
+  drawMiniChart(
+    ctx,
+    natalX,
+    natalY,
+    natalChartSize,
+    natalChartSize,
+    natalCellCounts,
+    basicNumber,
+    destinyNumber,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    "NATAL",
   );
 
-  function reduceToSingle(input: number): number {
-    let n = input;
-    while (n > 9) {
-      n = String(n)
-        .split("")
-        .reduce((s, d) => s + Number(d), 0);
-    }
-    return n;
-  }
-
-  years.forEach((yr, idx) => {
+  const cardsStartY = titleH + natalTotalH + padding;
+  limited.forEach((entry, idx) => {
     const col = idx % cols;
     const row = Math.floor(idx / cols);
-    const x = padding + col * (chartW + padding);
-    const y = titleH + padding + row * (chartH + padding);
-    const rawSum = day + month + yr;
-    const yearNumber = reduceToSingle(rawSum);
+    const x = padding + col * (cardW + padding);
+    const y = cardsStartY + row * (cardH + padding);
     drawMiniChart(
       ctx,
       x,
       y,
-      chartW,
-      chartH,
+      cardW,
+      cardH,
       natalCellCounts,
       basicNumber,
       destinyNumber,
-      dasaNumber,
-      yearNumber,
+      entry.dasaNumber,
+      entry.yearNumber,
       undefined,
       undefined,
-      String(yr),
+      entry.yearLabel,
     );
   });
 
+  drawColorLegendBar(ctx, 0, logicalH - legendH, logicalW);
   return canvas.toDataURL("image/png");
 }
 
@@ -508,90 +754,84 @@ export function DownloadChartDialog({
   natalCellCounts,
   dasaNumber,
   yearNumber,
+  dob,
 }: DownloadChartDialogProps) {
-  const [generating, setGenerating] = useState(false);
-  const [downloadType, setDownloadType] = useState<
-    "choose" | "month" | "day" | "yearrange" | "natal"
-  >("choose");
-  const [yearRangeFrom, setYearRangeFrom] = useState(
-    String(new Date().getFullYear()),
-  );
-  const [yearRangeTo, setYearRangeTo] = useState(
-    String(new Date().getFullYear() + 10),
-  );
+  const dobDisplay = dob
+    ? formatDob(dob)
+    : `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}`;
+  const dobStr =
+    dob ??
+    `${String(day).padStart(2, "0")}-${String(month).padStart(2, "0")}-????`;
+
+  const [step, setStep] = useState<"options" | "month-picker">("options");
 
   function handleClose() {
-    setDownloadType("choose");
+    setStep("options");
     onClose();
   }
 
-  function triggerDownload(dataUrl: string, filename: string) {
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = filename;
-    a.click();
-  }
-
-  function handleDownload(type: "month" | "day" | "natal" | "yearrange") {
-    setGenerating(true);
+  function handleDownloadMonth() {
     setTimeout(() => {
       try {
-        if (type === "month") {
-          const dataUrl = generateMonthChartPNG(
-            yearIter,
-            day,
-            month,
-            basicNumber,
-            destinyNumber,
-            natalCellCounts,
-            dasaNumber,
-            yearNumber,
-          );
-          triggerDownload(dataUrl, `year-${yearIter}-month-chart.png`);
-          handleClose();
-        } else if (type === "day") {
-          const dataUrl = generateDayChartPNG(
-            yearIter,
-            day,
-            month,
-            basicNumber,
-            destinyNumber,
-            natalCellCounts,
-            dasaNumber,
-            yearNumber,
-          );
-          triggerDownload(dataUrl, `year-${yearIter}-day-chart.png`);
-          handleClose();
-        } else if (type === "natal") {
-          const dataUrl = generateNatalChartPNG(
-            natalCellCounts,
-            basicNumber,
-            destinyNumber,
-            dasaNumber,
-            yearNumber,
-          );
-          triggerDownload(dataUrl, "natal-chart.png");
-          handleClose();
-        } else if (type === "yearrange") {
-          const from = Number.parseInt(yearRangeFrom, 10);
-          const to = Number.parseInt(yearRangeTo, 10);
-          if (!Number.isNaN(from) && !Number.isNaN(to) && from <= to) {
-            const dataUrl = generateYearRangeChartPNG(
-              from,
-              to,
-              day,
-              month,
-              basicNumber,
-              destinyNumber,
-              natalCellCounts,
-              dasaNumber,
-            );
-            triggerDownload(dataUrl, `year-range-${from}-${to}-chart.png`);
-            handleClose();
-          }
+        const dataUrl = generateMonthChartPNG(
+          yearIter,
+          day,
+          month,
+          basicNumber,
+          destinyNumber,
+          natalCellCounts,
+          dasaNumber,
+          yearNumber,
+          dobStr,
+        );
+        triggerDownload(dataUrl, `year-${yearIter}-month-chart.png`);
+        handleClose();
+      } catch (err) {
+        console.error(err);
+      }
+    }, 50);
+  }
+
+  function handleDownloadDayForMonth(targetMonthIndex: number) {
+    setTimeout(() => {
+      try {
+        const pages = generateDayChartPages(
+          yearIter,
+          day,
+          month,
+          basicNumber,
+          destinyNumber,
+          natalCellCounts,
+          dasaNumber,
+          yearNumber,
+          dobStr,
+        );
+        const page = pages.find((p) => p.monthIndex === targetMonthIndex);
+        if (page) {
+          triggerDownload(page.dataUrl, page.filename);
         }
-      } finally {
-        setGenerating(false);
+        handleClose();
+      } catch (err) {
+        console.error(err);
+      }
+    }, 50);
+  }
+
+  function handleDownloadNatal() {
+    setTimeout(() => {
+      try {
+        const dataUrl = generateNatalChartPNG(
+          natalCellCounts,
+          basicNumber,
+          destinyNumber,
+          dasaNumber,
+          yearNumber,
+          dobStr,
+        );
+        triggerDownload(dataUrl, "natal-chart.png");
+        handleClose();
+      } catch (err) {
+        console.error(err);
       }
     }, 50);
   }
@@ -608,146 +848,129 @@ export function DownloadChartDialog({
             className="font-display font-bold text-center"
             style={{ color: GREEN_HEADER }}
           >
-            Download Chart
+            {step === "options" && "Download Chart"}
+            {step === "month-picker" && "Choose Month"}
           </DialogTitle>
         </DialogHeader>
 
-        {downloadType === "choose" && (
-          <div className="flex flex-col gap-3 mt-2">
-            <p className="text-sm text-center text-muted-foreground">
-              Choose the chart type to download:
-            </p>
-            <Button
-              data-ocid="download_chart.month_button"
-              onClick={() => handleDownload("month")}
-              disabled={generating}
-              variant="outline"
-              className="w-full justify-start"
-              style={{
-                borderColor: BORDER_COLOR,
-                color: MONTH_COLOR,
-                fontWeight: 700,
-              }}
-            >
-              Month Chart \u2014 Year {yearIter}\u2013{yearIter + 1}
-            </Button>
-            <Button
-              data-ocid="download_chart.day_button"
-              onClick={() => handleDownload("day")}
-              disabled={generating}
-              className="w-full justify-start"
-              style={{
-                background: GREEN_HEADER,
-                color: "#fff",
-                fontWeight: 700,
-              }}
-            >
-              Day Chart \u2014 Year {yearIter}\u2013{yearIter + 1}
-            </Button>
-            <Button
-              data-ocid="download_chart.yearrange_button"
-              onClick={() => setDownloadType("yearrange")}
-              disabled={generating}
-              variant="outline"
-              className="w-full justify-start"
-              style={{
-                borderColor: BORDER_COLOR,
-                color: DASA_COLOR,
-                fontWeight: 700,
-              }}
-            >
-              Year Range Chart (custom)
-            </Button>
-            <Button
-              data-ocid="download_chart.natal_button"
-              onClick={() => handleDownload("natal")}
-              disabled={generating}
-              variant="outline"
-              className="w-full justify-start"
-              style={{
-                borderColor: BORDER_COLOR,
-                color: "#000",
-                fontWeight: 700,
-              }}
-            >
-              Natal Chart (single large)
-            </Button>
-          </div>
-        )}
-
-        {downloadType === "yearrange" && (
-          <div className="flex flex-col gap-3 mt-2">
-            <p className="text-sm text-center text-muted-foreground">
-              Enter year range to download:
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label
-                  className="text-xs font-semibold"
-                  style={{ color: GREEN_HEADER }}
-                >
-                  From Year
-                </Label>
-                <Input
-                  data-ocid="download_chart.yearrange_from.input"
-                  type="number"
-                  value={yearRangeFrom}
-                  onChange={(e) => setYearRangeFrom(e.target.value)}
-                  placeholder="e.g. 2020"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label
-                  className="text-xs font-semibold"
-                  style={{ color: GREEN_HEADER }}
-                >
-                  To Year
-                </Label>
-                <Input
-                  data-ocid="download_chart.yearrange_to.input"
-                  type="number"
-                  value={yearRangeTo}
-                  onChange={(e) => setYearRangeTo(e.target.value)}
-                  placeholder="e.g. 2030"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                data-ocid="download_chart.yearrange_cancel.button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setDownloadType("choose")}
-                style={{ borderColor: BORDER_COLOR }}
-              >
-                Back
-              </Button>
-              <Button
-                data-ocid="download_chart.yearrange_download.button"
-                className="flex-1"
-                onClick={() => handleDownload("yearrange")}
-                disabled={generating}
+        <div className="flex flex-col gap-3 mt-1">
+          {/* ── OPTIONS STEP ── */}
+          {step === "options" && (
+            <>
+              {/* Color Legend — shown first */}
+              <div
+                className="rounded-md px-3 py-2"
                 style={{
-                  background: GREEN_HEADER,
-                  color: "#fff",
-                  fontWeight: 700,
+                  background: "#fafaf8",
+                  border: `1px solid ${BORDER_COLOR}`,
                 }}
               >
-                Download
-              </Button>
-            </div>
-          </div>
-        )}
+                <p
+                  className="text-xs font-semibold mb-2"
+                  style={{ color: "#555" }}
+                >
+                  Color Guide:
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {COLOR_LEGEND.map((item) => (
+                    <div key={item.label} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                        style={{
+                          background: item.bg ?? item.color,
+                          border: "1px solid rgba(0,0,0,0.15)",
+                        }}
+                      />
+                      <span className="text-xs" style={{ color: "#333" }}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        {generating && (
-          <p
-            data-ocid="download_chart.loading_state"
-            className="text-xs text-center mt-3"
-            style={{ color: "#888" }}
-          >
-            Generating chart\u2026
-          </p>
-        )}
+              {/* DOB */}
+              <div
+                className="rounded-md px-3 py-2 text-sm font-semibold text-center"
+                style={{
+                  background: "#f0faf4",
+                  color: GREEN_HEADER,
+                  border: `1px solid ${BORDER_COLOR}`,
+                }}
+              >
+                DOB: {dobDisplay}
+              </div>
+
+              {/* Download buttons */}
+              <div className="flex flex-col gap-2">
+                <Button
+                  data-ocid="download_chart.month_button"
+                  onClick={handleDownloadMonth}
+                  variant="outline"
+                  className="w-full justify-start font-bold"
+                  style={{ borderColor: MONTH_COLOR, color: MONTH_COLOR }}
+                >
+                  📅 Month Chart — Year {yearIter}–{yearIter + 1}
+                </Button>
+                <Button
+                  data-ocid="download_chart.day_button"
+                  onClick={() => setStep("month-picker")}
+                  className="w-full justify-start font-bold"
+                  style={{ background: GREEN_HEADER, color: "#fff" }}
+                >
+                  📆 Day Chart — Pick a Month
+                </Button>
+                <Button
+                  data-ocid="download_chart.natal_button"
+                  onClick={handleDownloadNatal}
+                  variant="outline"
+                  className="w-full justify-start font-bold"
+                  style={{ borderColor: "#999", color: NATAL_COLOR }}
+                >
+                  ⬛ Natal Chart
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ── MONTH PICKER STEP ── */}
+          {step === "month-picker" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep("options")}
+                className="text-sm text-left font-medium"
+                style={{
+                  color: GREEN_HEADER,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                ← Back
+              </button>
+              <p className="text-sm text-center" style={{ color: "#555" }}>
+                Select a month to download its day chart for Year {yearIter}–
+                {yearIter + 1}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {MONTH_SHORT.map((name, idx) => (
+                  <Button
+                    key={name}
+                    data-ocid={`download_chart.month_picker.item.${idx + 1}`}
+                    onClick={() => handleDownloadDayForMonth(idx)}
+                    variant="outline"
+                    className="w-full font-bold text-sm"
+                    style={{ borderColor: GREEN_HEADER, color: GREEN_HEADER }}
+                  >
+                    {name}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

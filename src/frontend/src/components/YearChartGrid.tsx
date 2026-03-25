@@ -1,10 +1,7 @@
 import { Download, Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { calculateDasaCycle, calculateYearNumber } from "../utils/numerology";
-import {
-  DownloadChartDialog,
-  generateYearRangeChartPNG,
-} from "./DownloadChartDialog";
+import { DownloadChartDialog } from "./DownloadChartDialog";
 import { MonthChartDetail } from "./MonthChartDetail";
 import { NatalChart } from "./NatalChart";
 
@@ -24,6 +21,7 @@ interface YearChartGridProps {
   canAccessMonth?: boolean;
   onMonthLocked?: () => void;
   dasaNumber?: number;
+  dob?: string; // "DD-MM-YYYY"
 }
 
 interface YearEntry {
@@ -50,13 +48,12 @@ export function YearChartGrid({
   toYear,
   canAccessMonth = true,
   onMonthLocked,
-  dasaNumber: propDasaNumber,
+  dob,
 }: YearChartGridProps) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [downloadState, setDownloadState] = useState<DownloadState | null>(
     null,
   );
-  const [downloadingAll, setDownloadingAll] = useState(false);
 
   const entries = useMemo<YearEntry[]>(() => {
     const dasaPeriods = calculateDasaCycle(basicNumber, year, fromYear, toYear);
@@ -104,30 +101,9 @@ export function YearChartGrid({
     });
   }
 
-  function handleDownloadAllYears() {
-    setDownloadingAll(true);
-    setTimeout(() => {
-      try {
-        const dasaNum = propDasaNumber ?? entries[0]?.dasaNumber ?? basicNumber;
-        const dataUrl = generateYearRangeChartPNG(
-          fromYear,
-          toYear,
-          day,
-          month,
-          basicNumber,
-          destinyNumber,
-          natalCellCounts,
-          dasaNum,
-        );
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = `year-chart-${fromYear}-${toYear}.png`;
-        a.click();
-      } finally {
-        setDownloadingAll(false);
-      }
-    }, 50);
-  }
+  const dobString =
+    dob ??
+    `${String(day).padStart(2, "0")}-${String(month).padStart(2, "0")}-${year}`;
 
   return (
     <div data-ocid="year_charts.panel" className="space-y-4">
@@ -162,31 +138,13 @@ export function YearChartGrid({
               className="text-xs font-body"
               style={{ color: "oklch(var(--muted-foreground))" }}
             >
-              {entries.length} year charts \u00b7{" "}
+              {entries.length} year charts ·{" "}
               {canAccessMonth
                 ? "Tap card for months"
-                : "\uD83D\uDD12 Month charts require Paid access"}
+                : "🔒 Month charts require Paid access"}
             </span>
           </div>
         </div>
-
-        {/* Download all visible year charts */}
-        <button
-          type="button"
-          data-ocid="year_charts.download_all.button"
-          onClick={handleDownloadAllYears}
-          disabled={downloadingAll}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
-          style={{
-            background: GREEN,
-            color: "#fff",
-            opacity: downloadingAll ? 0.7 : 1,
-            cursor: downloadingAll ? "wait" : "pointer",
-          }}
-        >
-          <Download className="w-3.5 h-3.5" />
-          {downloadingAll ? "Generating..." : "Download Year Chart"}
-        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -291,6 +249,7 @@ export function YearChartGrid({
           natalCellCounts={natalCellCounts}
           dasaNumber={downloadState.dasaNumber}
           yearNumber={downloadState.yearNumber}
+          dob={dobString}
         />
       )}
     </div>

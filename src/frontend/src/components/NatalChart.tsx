@@ -23,11 +23,17 @@ const DAY_COLOR = "#ec4899";
 const BASIC_COLOR = "#dc2626";
 const DESTINY_COLOR = "#16a34a";
 const NATAL_COLOR = "#000000";
-const DASA_COLOR = "#2563eb";
+const DASA_COLOR = "#ec4899";
 const YEAR_COLOR = "#ffffff";
 const YEAR_BG = "rgba(22,163,74,0.88)";
 const BORDER_COLOR = "#c8a96e";
 const CELL_BG = "#ffffff";
+
+function getFontSize(base: number, text: string): number {
+  if (text.length <= 1) return base;
+  if (text.length === 2) return Math.round(base * 0.8);
+  return Math.round(base * 0.6);
+}
 
 function CellWatermark({ compact }: { compact: boolean }) {
   const wStyle: React.CSSProperties = {
@@ -116,6 +122,12 @@ export function NatalChart({
           const row = Math.floor(idx / 3);
           const col = idx % 3;
 
+          const displayStr = String(display);
+          const dasaStr = String(dasaNumber);
+          const yearStr = String(yearNumber);
+          const monthStr = String(monthNumber);
+          const dayStr = String(dayNumber);
+
           return (
             <div
               key={cellNum}
@@ -130,8 +142,8 @@ export function NatalChart({
               <CellWatermark compact={compact} />
 
               <div
-                className="relative z-10 flex flex-col items-center justify-center gap-0.5"
-                style={{ padding: compact ? "2px" : "4px" }}
+                className="relative z-10 flex flex-row flex-wrap items-center justify-center gap-1"
+                style={{ padding: compact ? "2px" : "4px", width: "100%" }}
               >
                 {count > 0 && (
                   <motion.span
@@ -144,12 +156,17 @@ export function NatalChart({
                     }}
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "14px" : "20px",
+                      fontSize: `${getFontSize(compact ? 14 : 20, displayStr)}px`,
                       color: isBasic
                         ? BASIC_COLOR
                         : isDestiny
                           ? DESTINY_COLOR
                           : NATAL_COLOR,
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      display: "inline-block",
+                      flexShrink: 1,
+                      minWidth: 0,
                     }}
                   >
                     {display}
@@ -160,8 +177,13 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "17px" : "25px",
+                      fontSize: `${getFontSize(compact ? 17 : 25, dasaStr)}px`,
                       color: DASA_COLOR,
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      display: "inline-block",
+                      flexShrink: 1,
+                      minWidth: 0,
                     }}
                   >
                     {dasaNumber}
@@ -172,9 +194,14 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none rounded-sm px-0.5"
                     style={{
-                      fontSize: compact ? "20px" : "30px",
+                      fontSize: `${getFontSize(compact ? 20 : 30, yearStr)}px`,
                       color: YEAR_COLOR,
                       background: YEAR_BG,
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      display: "inline-block",
+                      flexShrink: 1,
+                      minWidth: 0,
                     }}
                   >
                     {yearNumber}
@@ -185,8 +212,13 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "10px" : "14px",
+                      fontSize: `${getFontSize(compact ? 10 : 14, monthStr)}px`,
                       color: MONTH_COLOR,
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      display: "inline-block",
+                      flexShrink: 1,
+                      minWidth: 0,
                     }}
                   >
                     {monthNumber}
@@ -197,9 +229,14 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "11px" : "15px",
+                      fontSize: `${getFontSize(compact ? 11 : 15, dayStr)}px`,
                       color: DAY_COLOR,
                       fontStyle: "italic",
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      display: "inline-block",
+                      flexShrink: 1,
+                      minWidth: 0,
                     }}
                   >
                     {dayNumber}

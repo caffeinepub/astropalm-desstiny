@@ -38,11 +38,14 @@ import {
 } from "../hooks/useVedicQueries";
 import {
   type NumerologyResult,
+  calculateDasaCycle,
   calculateNumerology,
+  calculateYearNumber,
   formatDOB,
   getMonthName,
   validateDOB,
 } from "../utils/numerology";
+import { generateAllYearsPNG } from "./DownloadChartDialog";
 import { NatalChart } from "./NatalChart";
 import { VedicAdminPanel } from "./VedicAdminPanel";
 import { YearChartGrid } from "./YearChartGrid";
@@ -108,6 +111,7 @@ function AppInner({
   const [fromYear, setFromYear] = useState<number>(new Date().getFullYear());
   const [toYear, setToYear] = useState<number>(new Date().getFullYear() + 44);
   const [showYearCharts, setShowYearCharts] = useState(false);
+  const [yearDownloadMsg, setYearDownloadMsg] = useState<string>("");
 
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -735,6 +739,82 @@ function AppInner({
                           ? "Hide Year Charts"
                           : "Show Year Charts"}
                       </Button>
+                      {showYearCharts && result && sectionLevel >= 2 && (
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            data-ocid="vedic_download_dasa_year.primary_button"
+                            variant="outline"
+                            className="w-full font-body font-semibold tracking-wide"
+                            style={{ borderColor: "#2563eb", color: "#2563eb" }}
+                            onClick={() => {
+                              const MAX = 30;
+                              const yearCount = toYear - fromYear + 1;
+                              const effectiveTo =
+                                yearCount > MAX ? fromYear + MAX - 1 : toYear;
+                              setYearDownloadMsg(
+                                yearCount > MAX
+                                  ? "Showing first 30 years only (max 30 per download)"
+                                  : "",
+                              );
+                              const entries: Array<{
+                                yearIter: number;
+                                dasaNumber: number;
+                                yearNumber: number;
+                                yearLabel: string;
+                              }> = [];
+                              const dasaPeriods = calculateDasaCycle(
+                                result.basicNumber,
+                                Number(dob.year),
+                                fromYear,
+                                effectiveTo,
+                              );
+                              for (let y = fromYear; y <= effectiveTo; y++) {
+                                const yn = calculateYearNumber(
+                                  Number(dob.day),
+                                  Number(dob.month),
+                                  y,
+                                );
+                                const period = dasaPeriods.find(
+                                  (p) => p.startYear <= y && y < p.endYear,
+                                );
+                                const dn = period
+                                  ? period.dasaNumber
+                                  : result.basicNumber;
+                                entries.push({
+                                  yearIter: y,
+                                  dasaNumber: dn,
+                                  yearNumber: yn,
+                                  yearLabel: `${y} – ${y + 1}`,
+                                });
+                              }
+                              const dobStr = `${String(dob.day).padStart(2, "0")}-${String(dob.month).padStart(2, "0")}-${dob.year}`;
+                              const dataUrl = generateAllYearsPNG(
+                                entries,
+                                Number(dob.day),
+                                Number(dob.month),
+                                result.basicNumber,
+                                result.destinyNumber,
+                                result.cellCounts,
+                                dobStr,
+                              );
+                              const a = document.createElement("a");
+                              a.href = dataUrl;
+                              a.download = `dasa-year-charts-${fromYear}-${effectiveTo}.png`;
+                              a.click();
+                            }}
+                          >
+                            ⬇ Download Dasa Year Chart
+                          </Button>
+                          {yearDownloadMsg && (
+                            <p
+                              className="text-xs text-center"
+                              style={{ color: "#d97706" }}
+                            >
+                              {yearDownloadMsg}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <AnimatePresence>

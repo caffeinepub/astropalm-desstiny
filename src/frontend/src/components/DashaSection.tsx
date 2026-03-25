@@ -48,8 +48,8 @@ function DashaRow({ entry, level, index }: DashaRowProps) {
       data-ocid={`dasha.item.${index + 1}`}
       className={`rounded-lg mb-1 overflow-hidden border transition-all ${
         active
-          ? "border-amber-400/50 bg-amber-950/20"
-          : "border-transparent hover:border-white/10"
+          ? "border-amber-400/50 bg-amber-50"
+          : "border-transparent hover:border-gray-200"
       }`}
       style={{ paddingLeft: level * 12 }}
     >
@@ -68,10 +68,10 @@ function DashaRow({ entry, level, index }: DashaRowProps) {
         <span
           className={`font-semibold text-sm flex-1 ${
             active
-              ? "text-amber-300"
+              ? "text-amber-700"
               : future
-                ? "text-white/50"
-                : "text-white/90"
+                ? "text-gray-400"
+                : "text-gray-800"
           }`}
         >
           {entry.lord}
@@ -82,12 +82,12 @@ function DashaRow({ entry, level, index }: DashaRowProps) {
           )}
         </span>
         {/* Dates */}
-        <span className="text-[11px] text-white/40 mr-2 hidden sm:block">
+        <span className="text-[11px] text-gray-400 mr-2 hidden sm:block">
           {formatDate(entry.startDate)} – {formatDate(entry.endDate)}
         </span>
         {/* Expand icon */}
         {hasChildren && (
-          <span className="text-white/40 group-hover:text-white/70 transition-colors">
+          <span className="text-gray-400 group-hover:text-gray-600 transition-colors">
             {expanded ? (
               <ChevronDown className="w-3.5 h-3.5" />
             ) : (
@@ -98,7 +98,7 @@ function DashaRow({ entry, level, index }: DashaRowProps) {
       </button>
 
       {/* Mobile dates */}
-      <div className="px-3 pb-1.5 text-[10px] text-white/35 sm:hidden">
+      <div className="px-3 pb-1.5 text-[10px] text-gray-400 sm:hidden">
         {formatDate(entry.startDate)} – {formatDate(entry.endDate)}
       </div>
 
@@ -140,24 +140,18 @@ export default function DashaSection({ dasha }: Props) {
     <div
       className="rounded-xl h-full flex flex-col"
       style={{
-        background: "oklch(var(--dasha-bg))",
-        color: "oklch(var(--dasha-text))",
+        background: "#f9f6f0",
+        color: "#222",
       }}
     >
-      <div
-        className="px-4 py-3 border-b"
-        style={{ borderColor: "oklch(var(--dasha-border))" }}
-      >
-        <h3 className="font-semibold text-sm text-amber-400">
+      <div className="px-4 py-3 border-b" style={{ borderColor: "#e5e7eb" }}>
+        <h3 className="font-semibold text-sm" style={{ color: "#2E8B57" }}>
           Vimshottari Dasha
         </h3>
         {activeMaha && (
-          <p
-            className="text-xs mt-0.5"
-            style={{ color: "oklch(var(--dasha-muted))" }}
-          >
+          <p className="text-xs mt-0.5" style={{ color: "#666" }}>
             Current:{" "}
-            <span className="text-amber-300 font-medium">
+            <span className="font-medium" style={{ color: "#b45309" }}>
               {activeMaha.lord}
             </span>{" "}
             Mahadasha
@@ -171,7 +165,7 @@ export default function DashaSection({ dasha }: Props) {
       >
         <div
           className="text-[10px] font-semibold uppercase tracking-wider px-2 mb-2"
-          style={{ color: "oklch(var(--dasha-muted))" }}
+          style={{ color: "#888" }}
         >
           Click to expand Antardasha → Pratyantar
         </div>
