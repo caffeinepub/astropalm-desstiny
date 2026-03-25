@@ -1,8 +1,19 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, ClipboardList, Loader2, ShieldAlert, X } from "lucide-react";
+import {
+  Bell,
+  ClipboardList,
+  Loader2,
+  MessageSquare,
+  ShieldAlert,
+  X,
+} from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useCheckAdmin, useGetAllInquiries } from "../hooks/useQueries";
+import {
+  useCheckAdmin,
+  useGetAllInquiries,
+  useGetVisitorQueries,
+} from "../hooks/useQueries";
 import BlogManagementTab from "./BlogManagementTab";
 import InquiriesTab from "./InquiriesTab";
 
@@ -61,10 +72,97 @@ function InquiryNotificationPopup({
   );
 }
 
+interface VisitorQuery {
+  name: string;
+  contactInfo: string;
+  message: string;
+  submittedAt?: string | bigint;
+}
+
+function QueriesTab({ queries }: { queries: VisitorQuery[] }) {
+  if (queries.length === 0) {
+    return (
+      <div
+        data-ocid="queries.empty_state"
+        className="flex flex-col items-center justify-center py-16 text-center"
+      >
+        <MessageSquare size={40} className="text-gold/30 mx-auto mb-3" />
+        <p className="font-serif text-lg text-charcoal/50">No queries yet</p>
+        <p className="text-sm text-charcoal/35 mt-1">
+          Visitor queries will appear here once submitted.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-charcoal/50">
+        {queries.length} {queries.length === 1 ? "query" : "queries"} received
+      </p>
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-gold/20">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gold/10 text-charcoal/70">
+              <th className="text-left px-4 py-3 font-semibold">#</th>
+              <th className="text-left px-4 py-3 font-semibold">Name</th>
+              <th className="text-left px-4 py-3 font-semibold">
+                Contact Info
+              </th>
+              <th className="text-left px-4 py-3 font-semibold">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            {queries.map((q, i) => (
+              <tr
+                key={`${q.name}-${q.contactInfo}-${i}`}
+                data-ocid={`queries.row.${i + 1}`}
+                className="border-t border-gold/10 hover:bg-gold/5 transition-colors"
+              >
+                <td className="px-4 py-3 text-charcoal/40 font-mono text-xs">
+                  {i + 1}
+                </td>
+                <td className="px-4 py-3 font-medium text-charcoal">
+                  {q.name}
+                </td>
+                <td className="px-4 py-3 text-charcoal/70">{q.contactInfo}</td>
+                <td className="px-4 py-3 text-charcoal/60 max-w-xs truncate">
+                  {q.message}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {queries.map((q, i) => (
+          <div
+            key={`${q.name}-${q.contactInfo}-${i}`}
+            data-ocid={`queries.item.${i + 1}`}
+            className="bg-white rounded-xl border border-gold/20 p-4 space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-charcoal">{q.name}</span>
+              <span className="text-xs text-charcoal/40">#{i + 1}</span>
+            </div>
+            <p className="text-xs text-charcoal/60">{q.contactInfo}</p>
+            <p className="text-sm text-charcoal/70 leading-relaxed">
+              {q.message}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const { identity } = useInternetIdentity();
   const { data: isAdmin, isLoading } = useCheckAdmin();
   const { data: inquiries } = useGetAllInquiries();
+  const { data: visitorQueries } = useGetVisitorQueries();
   const [activeTab, setActiveTab] = useState("inquiries");
   const [showPopup, setShowPopup] = useState(false);
 
@@ -124,6 +222,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   }
 
   const inquiryCount = inquiries?.length ?? 0;
+  const queryCount = (visitorQueries as any[])?.length ?? 0;
 
   return (
     <div className="min-h-screen bg-cream-bg pt-20">
@@ -180,6 +279,18 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             >
               Blog Management
             </TabsTrigger>
+            <TabsTrigger
+              value="queries"
+              className="data-[state=active]:bg-gold data-[state=active]:text-white"
+              data-ocid="admin.queries.tab"
+            >
+              Queries
+              {queryCount > 0 && (
+                <span className="ml-1.5 bg-gold text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                  {queryCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="inquiries">
@@ -187,6 +298,9 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           </TabsContent>
           <TabsContent value="blog">
             <BlogManagementTab />
+          </TabsContent>
+          <TabsContent value="queries">
+            <QueriesTab queries={(visitorQueries as any[]) ?? []} />
           </TabsContent>
         </Tabs>
       </div>

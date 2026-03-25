@@ -1,6 +1,6 @@
 import { BookOpen, Loader2, Plus, Star } from "lucide-react";
 import React, { useState } from "react";
-import type { Post } from "../backend";
+import type { Post as BlogPost } from "../backend";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useCheckAdmin, useGetAllPosts } from "../hooks/useQueries";
 import BlogPostCard from "./BlogPostCard";
@@ -11,11 +11,11 @@ export default function BlogSection() {
   const { identity } = useInternetIdentity();
   const { data: isAdmin } = useCheckAdmin();
   const [showEditor, setShowEditor] = useState(false);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
   const isAuthenticated = !!identity;
 
-  const handleEdit = (post: Post) => {
+  const handleEdit = (post: BlogPost) => {
     setEditingPost(post);
     setShowEditor(true);
   };
@@ -34,7 +34,7 @@ export default function BlogSection() {
             <Star size={14} className="text-gold" fill="currentColor" />
             <div className="celestial-divider w-12" />
           </div>
-          <h2 className="section-heading">Blog & Notice Board</h2>
+          <h2 className="section-heading">Blog &amp; Notice Board</h2>
           <p className="section-subheading max-w-2xl mx-auto">
             Insights, announcements, and wisdom from the world of astrology and
             numerology
@@ -50,7 +50,7 @@ export default function BlogSection() {
                 setShowEditor(true);
               }}
               className="btn-gold flex items-center gap-2 text-sm"
-              data-ocid="blog.new_post.button"
+              data-ocid="blog.primary_button"
             >
               <Plus size={16} />
               New Post
@@ -80,7 +80,7 @@ export default function BlogSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post, _i) => (
+            {posts.map((post) => (
               <BlogPostCard
                 key={post.id.toString()}
                 post={post}

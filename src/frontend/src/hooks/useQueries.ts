@@ -1,10 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Inquiry, Post, Service, UserProfile } from "../backend";
+import type { Post, Service, UserProfile } from "../backend";
 import { ExternalBlob } from "../backend";
 import { useActor } from "./useActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
-// ── Services ────────────────────────────────────────────────────────────────
+// Re-export Post as BlogPost for component compatibility
+export type { Post as BlogPost } from "../backend";
+export type { Inquiry } from "../backend";
+
+// ── Services ──────────────────────────────────────────────────────────────────────
 
 export function useGetServices() {
   const { actor, isFetching } = useActor();
@@ -19,7 +23,7 @@ export function useGetServices() {
   });
 }
 
-// ── Blog Posts ───────────────────────────────────────────────────────────────
+// ── Blog Posts ───────────────────────────────────────────────────────────────────
 
 export function useGetAllPosts() {
   const { actor, isFetching } = useActor();
@@ -119,12 +123,12 @@ export function usePublishPost() {
   });
 }
 
-// ── Inquiries ────────────────────────────────────────────────────────────────
+// ── Inquiries ────────────────────────────────────────────────────────────────────
 
 export function useGetAllInquiries() {
   const { actor, isFetching } = useActor();
   const { identity } = useInternetIdentity();
-  return useQuery<Inquiry[]>({
+  return useQuery({
     queryKey: ["inquiries"],
     queryFn: async () => {
       if (!actor) return [];
@@ -179,10 +183,11 @@ export function useSubmitInquiry() {
       let handBlob: ExternalBlob | null = null;
       if (handPictureFile) {
         const bytes = new Uint8Array(await handPictureFile.arrayBuffer());
-        handBlob = ExternalBlob.fromBytes(bytes);
+        let blob = ExternalBlob.fromBytes(bytes);
         if (onProgress) {
-          handBlob = handBlob.withUploadProgress(onProgress);
+          blob = blob.withUploadProgress(onProgress);
         }
+        handBlob = blob;
       }
 
       const palmPhotoBlobs: Array<ExternalBlob | null> = [];
@@ -243,7 +248,7 @@ export function useDeleteInquiry() {
   });
 }
 
-// ── Admin Check ──────────────────────────────────────────────────────────────
+// ── Admin Check ────────────────────────────────────────────────────────────────────
 
 export function useCheckAdmin() {
   const { actor, isFetching } = useActor();
@@ -252,14 +257,14 @@ export function useCheckAdmin() {
     queryKey: ["isAdmin", identity?.getPrincipal().toString()],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.checkAdmin();
+      return actor.isCallerAdmin();
     },
     enabled: !!actor && !isFetching && !!identity,
     staleTime: 1000 * 60 * 5,
   });
 }
 
-// ── User Profile ───────────────────────────────────────────────────────────────
+// ── User Profile ───────────────────────────────────────────────────────────────────────
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -293,5 +298,39 @@ export function useSaveCallerUserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
     },
+  });
+}
+
+// ── Visitor Queries ──────────────────────────────────────────────────────────────────
+
+export function useSubmitVisitorQuery() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      name,
+      contactInfo,
+      message,
+    }: { name: string; contactInfo: string; message: string }) => {
+      if (!actor) throw new Error("Actor not ready");
+      return (actor as any).submitVisitorQuery(name, contactInfo, message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["visitor_queries"] });
+    },
+  });
+}
+
+export function useGetVisitorQueries() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  return useQuery({
+    queryKey: ["visitor_queries"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getVisitorQueries?.() ?? [];
+    },
+    enabled: !!actor && !isFetching && !!identity,
+    staleTime: 1000 * 60,
   });
 }

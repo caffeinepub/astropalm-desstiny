@@ -12,11 +12,11 @@ import { Loader2, Save } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Post } from "../backend";
+import type { Post as BlogPost } from "../backend";
 import { useCreatePost, useUpdatePost } from "../hooks/useQueries";
 
 interface BlogPostEditorProps {
-  post: Post | null;
+  post: BlogPost | null;
   onClose: () => void;
 }
 

@@ -10,13 +10,13 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import type { Post } from "../backend";
+import type { Post as BlogPost } from "../backend";
 import { useDeletePost, usePublishPost } from "../hooks/useQueries";
 
 interface BlogPostCardProps {
-  post: Post;
+  post: BlogPost;
   isAdmin: boolean;
-  onEdit: (post: Post) => void;
+  onEdit: (post: BlogPost) => void;
 }
 
 export default function BlogPostCard({
@@ -73,7 +73,11 @@ export default function BlogPostCard({
         {isAdmin && (
           <Badge
             variant={post.published ? "default" : "secondary"}
-            className={`text-xs shrink-0 ${post.published ? "bg-sage/20 text-sage-dark border-sage/30" : "bg-charcoal/10 text-charcoal/50"}`}
+            className={`text-xs shrink-0 ${
+              post.published
+                ? "bg-sage/20 text-sage-dark border-sage/30"
+                : "bg-charcoal/10 text-charcoal/50"
+            }`}
           >
             {post.published ? "Published" : "Draft"}
           </Badge>

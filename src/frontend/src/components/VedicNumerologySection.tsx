@@ -8,7 +8,6 @@ interface VedicNumerologySectionProps {
 export default function VedicNumerologySection({
   onOpen,
 }: VedicNumerologySectionProps) {
-  // Preview grid cells for decorative display
   const gridPositions = [
     { num: 3, row: 0, col: 0 },
     { num: 1, row: 0, col: 1 },
@@ -95,7 +94,6 @@ export default function VedicNumerologySection({
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="relative">
-              {/* Glow background */}
               <div className="absolute inset-0 bg-gold/10 rounded-2xl blur-2xl scale-110" />
 
               <div className="relative bg-cream-bg border-2 border-gold/40 rounded-xl p-6 shadow-spiritual-lg">
@@ -108,11 +106,8 @@ export default function VedicNumerologySection({
                   </p>
                 </div>
 
-                {/* 3x3 Grid Preview */}
                 <div className="grid grid-cols-3 gap-2">
                   {gridPositions.map(({ num, row, col }) => {
-                    // Example DOB 05-02-1998: 5(basic+year_5), 2(month+year_2), 9(year_9), 8(year_8), 7(destiny)
-                    // Numbers present: 5,2,9,8,7 — 5 appears twice (basic+year)
                     const natCount: Record<number, number> = {
                       5: 2,
                       2: 1,
@@ -121,8 +116,8 @@ export default function VedicNumerologySection({
                       7: 1,
                     };
                     const count = natCount[num] || 0;
-                    const isDasa = num === 9; // current dasa for demo
-                    const isYear = num === 5; // current year num for demo
+                    const isDasa = num === 9;
+                    const isYear = num === 5;
 
                     return (
                       <motion.div
@@ -164,7 +159,6 @@ export default function VedicNumerologySection({
                   })}
                 </div>
 
-                {/* Legend */}
                 <div className="mt-4 flex items-center justify-center gap-4 text-xs">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-charcoal inline-block" />

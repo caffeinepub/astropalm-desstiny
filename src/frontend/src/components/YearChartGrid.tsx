@@ -1,11 +1,16 @@
+import { Download, Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { calculateDasaCycle, calculateYearNumber } from "../utils/numerology";
+import {
+  DownloadChartDialog,
+  generateYearRangeChartPNG,
+} from "./DownloadChartDialog";
 import { MonthChartDetail } from "./MonthChartDetail";
 import { NatalChart } from "./NatalChart";
 
 const GREEN = "#2E8B57";
 const DASA_COLOR = "#1e293b";
-const YEAR_COLOR = "oklch(0.45 0.14 160)";
+const YEAR_COLOR = "#16a34a";
 
 interface YearChartGridProps {
   day: number;
@@ -18,6 +23,7 @@ interface YearChartGridProps {
   toYear: number;
   canAccessMonth?: boolean;
   onMonthLocked?: () => void;
+  dasaNumber?: number;
 }
 
 interface YearEntry {
@@ -25,6 +31,12 @@ interface YearEntry {
   dasaNumber: number;
   yearNumber: number;
   yearLabel: string;
+}
+
+interface DownloadState {
+  yearIter: number;
+  dasaNumber: number;
+  yearNumber: number;
 }
 
 export function YearChartGrid({
@@ -38,8 +50,13 @@ export function YearChartGrid({
   toYear,
   canAccessMonth = true,
   onMonthLocked,
+  dasaNumber: propDasaNumber,
 }: YearChartGridProps) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [downloadState, setDownloadState] = useState<DownloadState | null>(
+    null,
+  );
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   const entries = useMemo<YearEntry[]>(() => {
     const dasaPeriods = calculateDasaCycle(basicNumber, year, fromYear, toYear);
@@ -74,79 +91,175 @@ export function YearChartGrid({
     setSelectedYear(yearIter);
   }
 
+  function handleDownloadClick(e: React.MouseEvent, entry: YearEntry) {
+    e.stopPropagation();
+    if (!canAccessMonth) {
+      onMonthLocked?.();
+      return;
+    }
+    setDownloadState({
+      yearIter: entry.yearIter,
+      dasaNumber: entry.dasaNumber,
+      yearNumber: entry.yearNumber,
+    });
+  }
+
+  function handleDownloadAllYears() {
+    setDownloadingAll(true);
+    setTimeout(() => {
+      try {
+        const dasaNum = propDasaNumber ?? entries[0]?.dasaNumber ?? basicNumber;
+        const dataUrl = generateYearRangeChartPNG(
+          fromYear,
+          toYear,
+          day,
+          month,
+          basicNumber,
+          destinyNumber,
+          natalCellCounts,
+          dasaNum,
+        );
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `year-chart-${fromYear}-${toYear}.png`;
+        a.click();
+      } finally {
+        setDownloadingAll(false);
+      }
+    }, 50);
+  }
+
   return (
     <div data-ocid="year_charts.panel" className="space-y-4">
-      <div className="flex gap-5 flex-wrap items-center px-1">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ background: DASA_COLOR }}
-          />
-          <span
-            className="text-xs font-body italic"
-            style={{ color: "oklch(var(--muted-foreground))" }}
-          >
-            Dasa number
-          </span>
+      <div className="flex gap-3 flex-wrap items-center justify-between px-1">
+        <div className="flex gap-5 flex-wrap items-center">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ background: DASA_COLOR }}
+            />
+            <span
+              className="text-xs font-body italic"
+              style={{ color: "oklch(var(--muted-foreground))" }}
+            >
+              Dasa number
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ background: YEAR_COLOR, border: "1.5px solid #aaa" }}
+            />
+            <span
+              className="text-xs font-body"
+              style={{ color: "oklch(var(--muted-foreground))" }}
+            >
+              Year number
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-xs font-body"
+              style={{ color: "oklch(var(--muted-foreground))" }}
+            >
+              {entries.length} year charts \u00b7{" "}
+              {canAccessMonth
+                ? "Tap card for months"
+                : "\uD83D\uDD12 Month charts require Paid access"}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ background: YEAR_COLOR, border: "1.5px solid #aaa" }}
-          />
-          <span
-            className="text-xs font-body"
-            style={{ color: "oklch(var(--muted-foreground))" }}
-          >
-            Year number
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="text-xs font-body"
-            style={{ color: "oklch(var(--muted-foreground))" }}
-          >
-            {entries.length} year charts ·{" "}
-            {canAccessMonth
-              ? "Tap card for months"
-              : "🔒 Month charts require Paid access"}
-          </span>
-        </div>
+
+        {/* Download all visible year charts */}
+        <button
+          type="button"
+          data-ocid="year_charts.download_all.button"
+          onClick={handleDownloadAllYears}
+          disabled={downloadingAll}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
+          style={{
+            background: GREEN,
+            color: "#fff",
+            opacity: downloadingAll ? 0.7 : 1,
+            cursor: downloadingAll ? "wait" : "pointer",
+          }}
+        >
+          <Download className="w-3.5 h-3.5" />
+          {downloadingAll ? "Generating..." : "Download Year Chart"}
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {entries.map((entry) => (
-          <button
+          <div
             key={entry.yearIter}
-            type="button"
             data-ocid="year_chart.card"
-            className="rounded-md overflow-hidden cursor-pointer transition-all text-left w-full p-0 bg-transparent"
-            onClick={() => handleYearClick(entry.yearIter)}
+            className="relative rounded-md overflow-hidden"
             style={{
-              background: "oklch(var(--card))",
+              background: "#ffffff",
               border:
                 selectedYear === entry.yearIter
                   ? `2px solid ${GREEN}`
-                  : "1px solid oklch(var(--border))",
+                  : "1px solid #c8a96e",
               boxShadow:
                 selectedYear === entry.yearIter
                   ? `0 0 0 2px ${GREEN}33`
                   : "none",
-              transform:
-                selectedYear === entry.yearIter ? "scale(1.02)" : "scale(1)",
             }}
           >
-            <NatalChart
-              cellCounts={natalCellCounts}
-              basicNumber={basicNumber}
-              destinyNumber={destinyNumber}
-              animate={false}
-              dasaNumber={entry.dasaNumber}
-              yearNumber={entry.yearNumber}
-              compact={true}
-              yearLabel={entry.yearLabel}
-            />
-          </button>
+            <button
+              type="button"
+              className="w-full p-0 bg-transparent text-left cursor-pointer"
+              onClick={() => handleYearClick(entry.yearIter)}
+              style={{
+                transform:
+                  selectedYear === entry.yearIter ? "scale(1.02)" : "scale(1)",
+                transition: "transform 0.15s",
+              }}
+            >
+              <NatalChart
+                cellCounts={natalCellCounts}
+                basicNumber={basicNumber}
+                destinyNumber={destinyNumber}
+                animate={false}
+                dasaNumber={entry.dasaNumber}
+                yearNumber={entry.yearNumber}
+                compact={true}
+                yearLabel={entry.yearLabel}
+              />
+            </button>
+
+            {/* Download / Lock button */}
+            <button
+              type="button"
+              data-ocid="year_chart.download_button"
+              onClick={(e) => handleDownloadClick(e, entry)}
+              className="absolute bottom-1 right-1 rounded p-0.5 transition-colors"
+              style={{
+                background: canAccessMonth
+                  ? "rgba(46,139,87,0.12)"
+                  : "rgba(0,0,0,0.07)",
+                color: canAccessMonth ? GREEN : "#999",
+                zIndex: 10,
+              }}
+              title={
+                canAccessMonth
+                  ? `Download ${entry.yearLabel} chart`
+                  : "Paid users only"
+              }
+              aria-label={
+                canAccessMonth
+                  ? `Download ${entry.yearLabel} chart`
+                  : "Locked: Paid users only"
+              }
+            >
+              {canAccessMonth ? (
+                <Download className="w-3 h-3" />
+              ) : (
+                <Lock className="w-3 h-3" />
+              )}
+            </button>
+          </div>
         ))}
       </div>
 
@@ -162,6 +275,22 @@ export function YearChartGrid({
           dasaNumber={selectedEntry.dasaNumber}
           yearNumber={selectedEntry.yearNumber}
           onClose={() => setSelectedYear(null)}
+        />
+      )}
+
+      {downloadState && (
+        <DownloadChartDialog
+          open={true}
+          onClose={() => setDownloadState(null)}
+          yearIter={downloadState.yearIter}
+          day={day}
+          month={month}
+          birthYear={year}
+          basicNumber={basicNumber}
+          destinyNumber={destinyNumber}
+          natalCellCounts={natalCellCounts}
+          dasaNumber={downloadState.dasaNumber}
+          yearNumber={downloadState.yearNumber}
         />
       )}
     </div>

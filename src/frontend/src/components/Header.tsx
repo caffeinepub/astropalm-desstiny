@@ -1,18 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Loader2, LogIn, LogOut, Menu, X } from "lucide-react";
+import { Loader2, LogIn, LogOut, Menu, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useCheckAdmin, useGetCallerUserProfile } from "../hooks/useQueries";
+import { useGetCallerUserProfile } from "../hooks/useQueries";
 
 interface HeaderProps {
   onAdminClick: () => void;
 }
 
-export default function Header({ onAdminClick }: HeaderProps) {
+export default function Header({ onAdminClick: _onAdminClick }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { identity, login, clear, isLoggingIn } = useInternetIdentity();
-  const { data: isAdmin } = useCheckAdmin();
   const { data: userProfile } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
 
@@ -118,17 +117,7 @@ export default function Header({ onAdminClick }: HeaderProps) {
                 {userProfile.name}
               </span>
             )}
-            {isAuthenticated && isAdmin && (
-              <button
-                type="button"
-                onClick={onAdminClick}
-                className="flex items-center gap-1.5 text-sm text-gold-dark hover:text-gold font-medium transition-colors"
-                data-ocid="header.dashboard.button"
-              >
-                <LayoutDashboard size={15} />
-                Dashboard
-              </button>
-            )}
+
             <button
               type="button"
               onClick={handleAuth}
@@ -185,19 +174,7 @@ export default function Header({ onAdminClick }: HeaderProps) {
                 {userProfile.name}
               </span>
             )}
-            {isAuthenticated && isAdmin && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileOpen(false);
-                  onAdminClick();
-                }}
-                className="flex items-center gap-1.5 text-sm text-gold-dark font-medium"
-              >
-                <LayoutDashboard size={15} />
-                Dashboard
-              </button>
-            )}
+
             <button
               type="button"
               onClick={handleAuth}

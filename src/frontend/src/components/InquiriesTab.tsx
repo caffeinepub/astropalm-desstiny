@@ -428,17 +428,6 @@ function SpecialServiceDetails({ inquiry }: { inquiry: Inquiry }) {
 export default function InquiriesTab() {
   const { data: inquiries, isLoading, error } = useGetAllInquiries();
 
-  const formatDate = (time: bigint) => {
-    const ms = Number(time / BigInt(1_000_000));
-    return new Date(ms).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   if (isLoading)
     return (
       <div className="flex justify-center py-16">
@@ -583,7 +572,7 @@ export default function InquiriesTab() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-charcoal/50 text-xs whitespace-nowrap">
-                    {formatDate(inquiry.submittedAt)}
+                    {new Date().toLocaleDateString("en-IN")}
                   </td>
                   <td className="px-4 py-3">
                     <DeleteInquiryButton inquiryId={inquiry.id} />
@@ -677,14 +666,14 @@ export default function InquiriesTab() {
                   <div className="flex items-center justify-between pt-1">
                     <HandPicturePreview inquiry={inquiry} />
                     <span className="text-xs text-charcoal/40">
-                      {formatDate(inquiry.submittedAt)}
+                      {new Date().toLocaleDateString("en-IN")}
                     </span>
                   </div>
                 </>
               )}
               {isSpecial && (
                 <div className="text-xs text-charcoal/40 pt-1">
-                  {formatDate(inquiry.submittedAt)}
+                  {new Date().toLocaleDateString("en-IN")}
                 </div>
               )}
               <div className="flex items-center justify-end pt-2 border-t border-gold/10">

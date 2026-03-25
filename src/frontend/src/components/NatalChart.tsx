@@ -19,18 +19,20 @@ interface NatalChartProps {
 // Color constants
 const GREEN_HEADER = "#2E8B57";
 const MONTH_COLOR = "#7c3aed";
-const DAY_COLOR = "#dc2626";
+const DAY_COLOR = "#ec4899";
 const BASIC_COLOR = "#dc2626";
-const DESTINY_COLOR = "#d97706";
-const NATAL_COLOR = "#1e293b";
-const DASA_COLOR = "#1e293b";
+const DESTINY_COLOR = "#16a34a";
+const NATAL_COLOR = "#000000";
+const DASA_COLOR = "#2563eb";
 const YEAR_COLOR = "#ffffff";
 const YEAR_BG = "rgba(22,163,74,0.88)";
+const BORDER_COLOR = "#c8a96e";
+const CELL_BG = "#ffffff";
 
 function CellWatermark({ compact }: { compact: boolean }) {
   const wStyle: React.CSSProperties = {
     fontSize: compact ? "7px" : "9px",
-    color: "oklch(0.55 0.03 90 / 0.22)",
+    color: "rgba(150,120,60,0.18)",
     fontFamily: "Outfit, sans-serif",
     fontWeight: 600,
     whiteSpace: "nowrap" as const,
@@ -40,7 +42,7 @@ function CellWatermark({ compact }: { compact: boolean }) {
   return (
     <span
       aria-hidden
-      className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
+      className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
       style={{
         transform: "rotate(-28deg)",
         userSelect: "none",
@@ -72,8 +74,8 @@ export function NatalChart({
       data-ocid="natal_chart.panel"
       className="w-full"
       style={{
-        maxWidth: compact ? "100%" : "320px",
-        margin: compact ? 0 : "0 auto",
+        background: CELL_BG,
+        border: `1px solid ${BORDER_COLOR}`,
       }}
     >
       {!hideHeader &&
@@ -87,10 +89,7 @@ export function NatalChart({
         ) : (
           <div
             className="py-2.5 px-4 text-center font-display font-bold tracking-[0.2em] text-sm uppercase"
-            style={{
-              background: GREEN_HEADER,
-              color: "#ffffff",
-            }}
+            style={{ background: GREEN_HEADER, color: "#ffffff" }}
           >
             NATAL CHART
           </div>
@@ -99,7 +98,7 @@ export function NatalChart({
       <div
         className="grid grid-cols-3"
         style={{
-          border: "1.5px solid #cbd5e1",
+          border: `1.5px solid ${BORDER_COLOR}`,
           borderTop: hideHeader || !yearLabel ? undefined : "none",
         }}
       >
@@ -123,9 +122,9 @@ export function NatalChart({
               className="relative flex items-center justify-center overflow-hidden"
               style={{
                 minHeight: cellMinHeight,
-                background: "#ffffff",
-                borderRight: col < 2 ? "1px solid #cbd5e1" : "none",
-                borderBottom: row < 2 ? "1px solid #cbd5e1" : "none",
+                background: CELL_BG,
+                borderRight: col < 2 ? `1px solid ${BORDER_COLOR}` : "none",
+                borderBottom: row < 2 ? `1px solid ${BORDER_COLOR}` : "none",
               }}
             >
               <CellWatermark compact={compact} />
@@ -145,7 +144,7 @@ export function NatalChart({
                     }}
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "14px" : "22px",
+                      fontSize: compact ? "14px" : "20px",
                       color: isBasic
                         ? BASIC_COLOR
                         : isDestiny
@@ -161,7 +160,7 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none"
                     style={{
-                      fontSize: compact ? "14px" : "21px",
+                      fontSize: compact ? "17px" : "25px",
                       color: DASA_COLOR,
                     }}
                   >
@@ -173,7 +172,7 @@ export function NatalChart({
                   <span
                     className="font-display font-bold leading-none rounded-sm px-0.5"
                     style={{
-                      fontSize: compact ? "17px" : "26px",
+                      fontSize: compact ? "20px" : "30px",
                       color: YEAR_COLOR,
                       background: YEAR_BG,
                     }}

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit2, Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import type { Post } from "../backend";
+import type { Post as BlogPost } from "../backend";
 import {
   useDeletePost,
   useGetAllPostsAdmin,
@@ -14,7 +14,7 @@ export default function BlogManagementTab() {
   const { data: posts, isLoading } = useGetAllPostsAdmin();
   const deleteMutation = useDeletePost();
   const publishMutation = usePublishPost();
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [showEditor, setShowEditor] = useState(false);
 
   const formatDate = (time: bigint) => {
@@ -26,7 +26,7 @@ export default function BlogManagementTab() {
     });
   };
 
-  const handleDelete = async (post: Post) => {
+  const handleDelete = async (post: BlogPost) => {
     if (!confirm(`Delete "${post.title}"?`)) return;
     try {
       await deleteMutation.mutateAsync(post.id);
@@ -36,7 +36,7 @@ export default function BlogManagementTab() {
     }
   };
 
-  const handleTogglePublish = async (post: Post) => {
+  const handleTogglePublish = async (post: BlogPost) => {
     try {
       await publishMutation.mutateAsync({
         id: post.id,
@@ -48,7 +48,7 @@ export default function BlogManagementTab() {
     }
   };
 
-  const handleEdit = (post: Post) => {
+  const handleEdit = (post: BlogPost) => {
     setEditingPost(post);
     setShowEditor(true);
   };
@@ -77,7 +77,7 @@ export default function BlogManagementTab() {
             setShowEditor(true);
           }}
           className="btn-gold flex items-center gap-2 text-sm"
-          data-ocid="blog_mgmt.new_post.button"
+          data-ocid="blog_mgmt.primary_button"
         >
           <Plus size={14} />
           New Post
@@ -107,13 +107,17 @@ export default function BlogManagementTab() {
                   </h3>
                   <Badge
                     variant={post.published ? "default" : "secondary"}
-                    className={`text-xs shrink-0 ${post.published ? "bg-sage/20 text-sage-dark border-sage/30" : "bg-charcoal/10 text-charcoal/50"}`}
+                    className={`text-xs shrink-0 ${
+                      post.published
+                        ? "bg-sage/20 text-sage-dark border-sage/30"
+                        : "bg-charcoal/10 text-charcoal/50"
+                    }`}
                   >
                     {post.published ? "Published" : "Draft"}
                   </Badge>
                 </div>
                 <p className="text-xs text-charcoal/50">
-                  By {post.author} · {formatDate(post.createdAt)}
+                  By {post.author} &middot; {formatDate(post.createdAt)}
                 </p>
                 <p className="text-sm text-charcoal/60 mt-1 line-clamp-2">
                   {post.content}

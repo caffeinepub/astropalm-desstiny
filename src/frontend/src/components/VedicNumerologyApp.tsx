@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   BookOpen,
@@ -22,7 +23,6 @@ import {
   LogIn,
   LogOut,
   Settings,
-  Stars,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -43,9 +43,8 @@ import {
   getMonthName,
   validateDOB,
 } from "../utils/numerology";
-import { AdminPanel } from "./AdminPanel";
 import { NatalChart } from "./NatalChart";
-import { PredictTab } from "./PredictTab";
+import { VedicAdminPanel } from "./VedicAdminPanel";
 import { YearChartGrid } from "./YearChartGrid";
 import { YearScrollPicker } from "./YearScrollPicker";
 
@@ -57,14 +56,16 @@ interface DOBState {
 
 interface VedicNumerologyAppProps {
   onClose?: () => void;
+  onGoToNadiCards?: () => void;
 }
 
 export default function VedicNumerologyApp({
   onClose,
+  onGoToNadiCards,
 }: VedicNumerologyAppProps) {
   return (
     <AuthProvider>
-      <AppInner onClose={onClose} />
+      <AppInner onClose={onClose} onGoToNadiCards={onGoToNadiCards} />
     </AuthProvider>
   );
 }
@@ -89,8 +90,12 @@ function SummaryPill({
   );
 }
 
-function AppInner({ onClose }: { onClose?: () => void }) {
+function AppInner({
+  onClose,
+  onGoToNadiCards,
+}: { onClose?: () => void; onGoToNadiCards?: () => void }) {
   const { auth, login, loginAdmin, logout, sectionLevel } = useAuth();
+  const navigate = useNavigate();
 
   const [dob, setDob] = useState<DOBState>({ day: "", month: "", year: "" });
   const [result, setResult] = useState<NumerologyResult | null>(null);
@@ -258,6 +263,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
     setLoginUsername("");
     setLoginPassword("");
     setLoginError(null);
+    setShowLoginPassword(false);
     setLoginOpen(true);
   }
 
@@ -292,7 +298,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
     return (
       <>
         <Toaster position="top-right" />
-        <AdminPanel onBack={() => setShowAdminPanel(false)} />
+        <VedicAdminPanel onBack={() => setShowAdminPanel(false)} />
       </>
     );
   }
@@ -302,7 +308,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
       <Toaster position="top-right" />
 
       {/* Header */}
-      <header className="relative pt-6 pb-4 text-center">
+      <header className="relative pt-14 pb-4 text-center">
         <div className="absolute top-3 left-3">
           {onClose && (
             <button
@@ -321,6 +327,20 @@ function AppInner({ onClose }: { onClose?: () => void }) {
           )}
         </div>
         <div className="absolute top-3 right-3 flex items-center gap-2">
+          {onGoToNadiCards && (
+            <button
+              type="button"
+              onClick={onGoToNadiCards}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-body font-semibold transition-colors"
+              style={{
+                background: "oklch(var(--secondary))",
+                color: "oklch(var(--muted-foreground))",
+                border: "1px solid oklch(var(--border))",
+              }}
+            >
+              🃏 Nadi Cards
+            </button>
+          )}
           {auth ? (
             <>
               <span
@@ -359,15 +379,6 @@ function AppInner({ onClose }: { onClose?: () => void }) {
             <>
               <button
                 type="button"
-                data-ocid="vedic_admin_login.open_modal_button"
-                onClick={() => openLoginModal(true)}
-                className="font-body text-[10px] opacity-40 hover:opacity-70 transition-opacity"
-                style={{ color: "oklch(var(--muted-foreground))" }}
-              >
-                Admin
-              </button>
-              <button
-                type="button"
                 data-ocid="vedic_login.open_modal_button"
                 onClick={() => openLoginModal(false)}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-body font-semibold transition-colors"
@@ -390,7 +401,7 @@ function AppInner({ onClose }: { onClose?: () => void }) {
               textShadow: "0 1px 8px oklch(0.62 0.12 75 / 0.25)",
             }}
           >
-            ✧ Numerology ✧
+            ✧ Vedic Numerology ✧
           </h1>
         </div>
         <p
@@ -408,49 +419,74 @@ function AppInner({ onClose }: { onClose?: () => void }) {
       {/* Main Content */}
       <main className="flex-1 px-4 pb-16 max-w-lg mx-auto w-full">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList
-            className="w-full mb-6 text-xs"
-            style={{
-              background: "oklch(var(--secondary))",
-              border: "1px solid oklch(var(--border))",
-            }}
-          >
-            <TabsTrigger
-              value="new"
-              data-ocid="vedic_new_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
-            >
-              New
-            </TabsTrigger>
-            <TabsTrigger
-              value="saved"
-              data-ocid="vedic_saved_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
-            >
-              Saved
-            </TabsTrigger>
-            <TabsTrigger
-              value="comparison"
-              data-ocid="vedic_comparison_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
-            >
-              Compare
-            </TabsTrigger>
-            <TabsTrigger
-              value="monthdays"
-              data-ocid="vedic_monthdays_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
-            >
-              Months
-            </TabsTrigger>
-            <TabsTrigger
-              value="predict"
-              data-ocid="vedic_predict_tab.tab"
-              className="flex-1 font-body data-[state=active]:font-semibold px-0.5 text-[10px]"
-            >
-              Predict
-            </TabsTrigger>
-          </TabsList>
+          {/* Custom colored pill tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {(
+              [
+                {
+                  value: "new",
+                  label: "New",
+                  bg: "#f0f0f0",
+                  text: "#333",
+                  activeBg: "#9e9e9e",
+                  activeText: "#fff",
+                  ocid: "vedic_new_tab.tab",
+                },
+                {
+                  value: "saved",
+                  label: "Saved",
+                  bg: "#fce4ec",
+                  text: "#c2185b",
+                  activeBg: "#f48fb1",
+                  activeText: "#fff",
+                  ocid: "vedic_saved_tab.tab",
+                },
+                {
+                  value: "compare",
+                  label: "Compare",
+                  bg: "#e8f5e9",
+                  text: "#2e7d32",
+                  activeBg: "#66bb6a",
+                  activeText: "#fff",
+                  ocid: "vedic_comparison_tab.tab",
+                },
+                {
+                  value: "months",
+                  label: "Months",
+                  bg: "#ede7f6",
+                  text: "#6a1b9a",
+                  activeBg: "#ab47bc",
+                  activeText: "#fff",
+                  ocid: "vedic_monthdays_tab.tab",
+                },
+                {
+                  value: "predict",
+                  label: "Predict",
+                  bg: "#fff8e1",
+                  text: "#e65100",
+                  activeBg: "#ffa726",
+                  activeText: "#fff",
+                  ocid: "vedic_predict_tab.tab",
+                },
+              ] as const
+            ).map((tab) => (
+              <button
+                type="button"
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                data-ocid={tab.ocid}
+                className="rounded-full text-sm font-semibold px-4 py-1.5 transition-all duration-150"
+                style={{
+                  background: activeTab === tab.value ? tab.activeBg : tab.bg,
+                  color: activeTab === tab.value ? tab.activeText : tab.text,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
           {/* New Chart Tab */}
           <TabsContent value="new" className="space-y-6 mt-0">
@@ -738,6 +774,103 @@ function AppInner({ onClose }: { onClose?: () => void }) {
                     >
                       Save This Chart
                     </Button>
+
+                    {/* Prediction options after chart */}
+                    <div className="space-y-3 pt-2">
+                      <h3
+                        className="font-display text-base font-semibold"
+                        style={{ color: "oklch(var(--primary))" }}
+                      >
+                        Prediction Services
+                      </h3>
+                      {[
+                        {
+                          label: "Basic Nature",
+                          desc: "Core personality traits from your birth numbers.",
+                          icon: "🌱",
+                          type: "basic",
+                        },
+                        {
+                          label: "Advance Nature Prediction",
+                          desc: "Deep dive into character, emotions, and hidden tendencies.",
+                          icon: "🔮",
+                          type: "advance",
+                        },
+                        {
+                          label: "Nature + Career Prediction",
+                          desc: "Full personality analysis + career guidance for your numbers.",
+                          icon: "💼",
+                          type: "career",
+                        },
+                        {
+                          label: "Compare Charts",
+                          desc: "Compare two DOBs side by side.",
+                          icon: "⚖️",
+                          type: "compare",
+                        },
+                      ].map((item) => (
+                        <button
+                          key={item.type}
+                          type="button"
+                          onClick={() => {
+                            if (sectionLevel >= 2) {
+                              if (item.type !== "compare") {
+                                try {
+                                  sessionStorage.setItem(
+                                    "numerology_current_result",
+                                    JSON.stringify(result),
+                                  );
+                                } catch {}
+                              }
+                              navigate({
+                                to: `/numerology/prediction/${item.type}`,
+                              });
+                            } else {
+                              openLoginModal(false);
+                            }
+                          }}
+                          className="w-full rounded-xl p-4 flex items-start gap-3 text-left transition-all"
+                          style={{
+                            background: "oklch(var(--card))",
+                            border: "1px solid oklch(var(--border))",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span className="text-2xl shrink-0">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="font-display text-sm font-bold"
+                                style={{
+                                  color:
+                                    sectionLevel >= 2
+                                      ? "oklch(var(--primary))"
+                                      : "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                {item.label}
+                              </span>
+                              {sectionLevel < 2 && (
+                                <Lock
+                                  className="w-3 h-3"
+                                  style={{
+                                    color: "oklch(var(--muted-foreground))",
+                                  }}
+                                />
+                              )}
+                            </div>
+                            <p
+                              className="font-body text-xs mt-0.5"
+                              style={{
+                                color: "oklch(var(--muted-foreground))",
+                              }}
+                            >
+                              {item.desc}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -891,509 +1024,752 @@ function AppInner({ onClose }: { onClose?: () => void }) {
           </TabsContent>
 
           {/* Comparison Tab */}
-          <TabsContent value="comparison" className="mt-0">
+          <TabsContent value="compare" className="mt-0">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <AnimatePresence mode="wait">
-                {!showComparison ? (
-                  <motion.div
-                    key="comparison-form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="space-y-4"
+              {!auth || sectionLevel < 2 ? (
+                <div
+                  className="rounded-lg p-10 flex flex-col items-center text-center gap-4"
+                  data-ocid="vedic_compare_locked.panel"
+                  style={{
+                    background: "oklch(var(--card))",
+                    border: "1px solid oklch(var(--border))",
+                  }}
+                >
+                  <Lock
+                    className="w-10 h-10 opacity-30"
+                    style={{ color: "oklch(var(--primary))" }}
+                  />
+                  <p
+                    className="font-display text-base font-semibold"
+                    style={{ color: "oklch(var(--primary))" }}
                   >
-                    {[
-                      {
-                        label: "Person 1",
-                        dob: p1Dob,
-                        setDob: setP1Dob,
-                        ocid: "comp_p1_dob.input",
-                      },
-                      {
-                        label: "Person 2",
-                        dob: p2Dob,
-                        setDob: setP2Dob,
-                        ocid: "comp_p2_dob.input",
-                      },
-                    ].map(({ label, dob: pDob, setDob: setPDob, ocid }) => (
-                      <div
-                        key={label}
-                        className="rounded-lg p-5"
-                        style={{
-                          background: "oklch(var(--card))",
-                          border: "1px solid oklch(var(--border))",
-                        }}
-                      >
-                        <h2
-                          className="font-display text-lg font-semibold mb-4"
-                          style={{ color: "oklch(var(--primary))" }}
+                    Advanced Access Required
+                  </p>
+                  <p
+                    className="font-body text-sm"
+                    style={{ color: "oklch(var(--muted-foreground))" }}
+                  >
+                    Compare Charts requires Advanced access. Please log in with
+                    an Advanced account.
+                  </p>
+                  {!auth && (
+                    <Button
+                      data-ocid="vedic_compare_login.primary_button"
+                      onClick={() => openLoginModal(false)}
+                      style={{
+                        background: "oklch(var(--primary))",
+                        color: "oklch(var(--primary-foreground))",
+                      }}
+                      className="font-body font-semibold gap-2"
+                    >
+                      <LogIn className="w-4 h-4" /> Login
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <AnimatePresence mode="wait">
+                  {!showComparison ? (
+                    <motion.div
+                      key="comparison-form"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="space-y-4"
+                    >
+                      {[
+                        {
+                          label: "Person 1",
+                          dob: p1Dob,
+                          setDob: setP1Dob,
+                          ocid: "comp_p1_dob.input",
+                        },
+                        {
+                          label: "Person 2",
+                          dob: p2Dob,
+                          setDob: setP2Dob,
+                          ocid: "comp_p2_dob.input",
+                        },
+                      ].map(({ label, dob: pDob, setDob: setPDob, ocid }) => (
+                        <div
+                          key={label}
+                          className="rounded-lg p-5"
+                          style={{
+                            background: "oklch(var(--card))",
+                            border: "1px solid oklch(var(--border))",
+                          }}
                         >
-                          {label}
-                        </h2>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="space-y-1.5">
-                            <Label
-                              className="text-xs uppercase tracking-wider font-body"
-                              style={{
-                                color: "oklch(var(--muted-foreground))",
-                              }}
-                            >
-                              Day
-                            </Label>
-                            <select
-                              data-ocid={ocid}
-                              value={pDob.day}
-                              onChange={(e) =>
-                                setPDob((prev) => ({
-                                  ...prev,
-                                  day: e.target.value,
-                                }))
-                              }
-                              className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
-                              style={{
-                                background: "oklch(var(--input))",
-                                border: "1px solid oklch(var(--border))",
-                                color: pDob.day
-                                  ? "oklch(var(--foreground))"
-                                  : "oklch(var(--muted-foreground))",
-                              }}
-                            >
-                              <option value="" disabled>
-                                DD
-                              </option>
-                              {dayOptions.map((d) => (
-                                <option key={d} value={String(d)}>
-                                  {String(d).padStart(2, "0")}
+                          <h2
+                            className="font-display text-lg font-semibold mb-4"
+                            style={{ color: "oklch(var(--primary))" }}
+                          >
+                            {label}
+                          </h2>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-1.5">
+                              <Label
+                                className="text-xs uppercase tracking-wider font-body"
+                                style={{
+                                  color: "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                Day
+                              </Label>
+                              <select
+                                data-ocid={ocid}
+                                value={pDob.day}
+                                onChange={(e) =>
+                                  setPDob((prev) => ({
+                                    ...prev,
+                                    day: e.target.value,
+                                  }))
+                                }
+                                className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
+                                style={{
+                                  background: "oklch(var(--input))",
+                                  border: "1px solid oklch(var(--border))",
+                                  color: pDob.day
+                                    ? "oklch(var(--foreground))"
+                                    : "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                <option value="" disabled>
+                                  DD
                                 </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label
-                              className="text-xs uppercase tracking-wider font-body"
-                              style={{
-                                color: "oklch(var(--muted-foreground))",
-                              }}
-                            >
-                              Month
-                            </Label>
-                            <select
-                              value={pDob.month}
-                              onChange={(e) =>
-                                setPDob((prev) => ({
-                                  ...prev,
-                                  month: e.target.value,
-                                }))
-                              }
-                              className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
-                              style={{
-                                background: "oklch(var(--input))",
-                                border: "1px solid oklch(var(--border))",
-                                color: pDob.month
-                                  ? "oklch(var(--foreground))"
-                                  : "oklch(var(--muted-foreground))",
-                              }}
-                            >
-                              <option value="" disabled>
-                                MM
-                              </option>
-                              {monthOptions.map((m) => (
-                                <option key={m} value={String(m)}>
-                                  {getMonthName(m)}
+                                {dayOptions.map((d) => (
+                                  <option key={d} value={String(d)}>
+                                    {String(d).padStart(2, "0")}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label
+                                className="text-xs uppercase tracking-wider font-body"
+                                style={{
+                                  color: "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                Month
+                              </Label>
+                              <select
+                                value={pDob.month}
+                                onChange={(e) =>
+                                  setPDob((prev) => ({
+                                    ...prev,
+                                    month: e.target.value,
+                                  }))
+                                }
+                                className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
+                                style={{
+                                  background: "oklch(var(--input))",
+                                  border: "1px solid oklch(var(--border))",
+                                  color: pDob.month
+                                    ? "oklch(var(--foreground))"
+                                    : "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                <option value="" disabled>
+                                  MM
                                 </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label
-                              className="text-xs uppercase tracking-wider font-body"
-                              style={{
-                                color: "oklch(var(--muted-foreground))",
-                              }}
-                            >
-                              Year
-                            </Label>
-                            <YearScrollPicker
-                              value={pDob.year}
-                              onChange={(v) =>
-                                setPDob((prev) => ({ ...prev, year: v }))
-                              }
-                            />
+                                {monthOptions.map((m) => (
+                                  <option key={m} value={String(m)}>
+                                    {getMonthName(m)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label
+                                className="text-xs uppercase tracking-wider font-body"
+                                style={{
+                                  color: "oklch(var(--muted-foreground))",
+                                }}
+                              >
+                                Year
+                              </Label>
+                              <YearScrollPicker
+                                value={pDob.year}
+                                onChange={(v) =>
+                                  setPDob((prev) => ({ ...prev, year: v }))
+                                }
+                              />
+                            </div>
                           </div>
                         </div>
+                      ))}
+                      {compError && (
+                        <p
+                          className="text-xs font-body"
+                          style={{ color: "oklch(var(--destructive))" }}
+                          data-ocid="vedic_comparison.error_state"
+                        >
+                          {compError}
+                        </p>
+                      )}
+                      <Button
+                        onClick={handleShowComparison}
+                        data-ocid="vedic_comparison.primary_button"
+                        className="w-full font-body font-semibold tracking-wide"
+                        style={{
+                          background: "oklch(var(--primary))",
+                          color: "oklch(var(--primary-foreground))",
+                        }}
+                      >
+                        Compare Charts
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="comparison-result"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="space-y-4"
+                    >
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowComparison(false)}
+                        data-ocid="vedic_comparison_back.secondary_button"
+                        className="font-body gap-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </Button>
+                      {p1Result && p2Result && (
+                        <div className="space-y-3">
+                          {/* Chart type tabs */}
+                          <div
+                            className="flex gap-1 rounded-lg p-1"
+                            style={{ background: "oklch(var(--muted))" }}
+                          >
+                            {(["natal", "year"] as const).map((tab) => (
+                              <button
+                                type="button"
+                                key={tab}
+                                data-ocid={`compare_chart.${tab}.tab`}
+                                onClick={() => setCompareChartTab(tab)}
+                                className="flex-1 py-1.5 rounded-md text-xs font-semibold font-body transition-all"
+                                style={{
+                                  background:
+                                    compareChartTab === tab
+                                      ? "oklch(var(--card))"
+                                      : "transparent",
+                                  color:
+                                    compareChartTab === tab
+                                      ? "oklch(var(--primary))"
+                                      : "oklch(var(--muted-foreground))",
+                                  boxShadow:
+                                    compareChartTab === tab
+                                      ? "0 1px 3px oklch(0 0 0 / 0.1)"
+                                      : "none",
+                                }}
+                              >
+                                {tab === "natal"
+                                  ? "Natal"
+                                  : "Year · Month · Dasa"}
+                              </button>
+                            ))}
+                          </div>
+
+                          {compareChartTab === "natal" && (
+                            <div className="grid grid-cols-2 gap-3">
+                              {[
+                                { label: "Person 1", r: p1Result },
+                                { label: "Person 2", r: p2Result },
+                              ].map(({ label, r }) => (
+                                <div
+                                  key={label}
+                                  className="rounded-lg p-3 space-y-2"
+                                  style={{
+                                    background: "oklch(var(--card))",
+                                    border: "1px solid oklch(var(--border))",
+                                  }}
+                                >
+                                  <h3
+                                    className="font-display text-sm font-semibold"
+                                    style={{ color: "oklch(var(--primary))" }}
+                                  >
+                                    {label}
+                                  </h3>
+                                  <div className="flex gap-3">
+                                    <span
+                                      className="font-body text-xs"
+                                      style={{ color: "#dc2626" }}
+                                    >
+                                      B: {r.basicNumber}
+                                    </span>
+                                    <span
+                                      className="font-body text-xs"
+                                      style={{ color: "#eab308" }}
+                                    >
+                                      D: {r.destinyNumber}
+                                    </span>
+                                  </div>
+                                  <NatalChart
+                                    cellCounts={r.cellCounts}
+                                    basicNumber={r.basicNumber}
+                                    destinyNumber={r.destinyNumber}
+                                    animate={false}
+                                    compact={true}
+                                    hideHeader={true}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {compareChartTab === "year" && (
+                            <div className="space-y-6">
+                              {[
+                                { label: "Person 1", r: p1Result, dob: p1Dob },
+                                { label: "Person 2", r: p2Result, dob: p2Dob },
+                              ].map(({ label, r, dob }) => (
+                                <div key={label} className="space-y-2">
+                                  <h3
+                                    className="font-display text-sm font-semibold px-1"
+                                    style={{ color: "oklch(var(--primary))" }}
+                                  >
+                                    {label} — B: {r.basicNumber} · D:{" "}
+                                    {r.destinyNumber}
+                                  </h3>
+                                  <YearChartGrid
+                                    day={Number.parseInt(dob.day, 10)}
+                                    month={Number.parseInt(dob.month, 10)}
+                                    year={Number.parseInt(dob.year, 10)}
+                                    basicNumber={r.basicNumber}
+                                    destinyNumber={r.destinyNumber}
+                                    natalCellCounts={r.cellCounts}
+                                    fromYear={new Date().getFullYear()}
+                                    toYear={new Date().getFullYear() + 5}
+                                    canAccessMonth={true}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
+            </motion.div>
+          </TabsContent>
+
+          {/* Month/Days Tab */}
+          <TabsContent value="months" className="mt-0">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {!auth || sectionLevel < 1 ? (
+                <div
+                  className="rounded-lg p-10 flex flex-col items-center text-center gap-4"
+                  data-ocid="vedic_months_locked.panel"
+                  style={{
+                    background: "oklch(var(--card))",
+                    border: "1px solid oklch(var(--border))",
+                  }}
+                >
+                  <Lock
+                    className="w-10 h-10 opacity-30"
+                    style={{ color: "oklch(var(--primary))" }}
+                  />
+                  <p
+                    className="font-display text-base font-semibold"
+                    style={{ color: "oklch(var(--primary))" }}
+                  >
+                    Paid Access Required
+                  </p>
+                  <p
+                    className="font-body text-sm"
+                    style={{ color: "oklch(var(--muted-foreground))" }}
+                  >
+                    Month &amp; Day Charts requires Paid access. Please log in
+                    or contact admin.
+                  </p>
+                  {!auth && (
+                    <Button
+                      data-ocid="vedic_months_login.primary_button"
+                      onClick={() => openLoginModal(false)}
+                      style={{
+                        background: "oklch(var(--primary))",
+                        color: "oklch(var(--primary-foreground))",
+                      }}
+                      className="font-body font-semibold gap-2"
+                    >
+                      <LogIn className="w-4 h-4" /> Login
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div
+                    className="rounded-lg p-5 space-y-4"
+                    style={{
+                      background: "oklch(var(--card))",
+                      border: "1px solid oklch(var(--border))",
+                    }}
+                  >
+                    <h2
+                      className="font-display text-lg font-semibold"
+                      style={{ color: "oklch(var(--primary))" }}
+                    >
+                      Month &amp; Day Charts
+                    </h2>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1.5">
+                        <Label
+                          className="text-xs uppercase tracking-wider font-body"
+                          style={{ color: "oklch(var(--muted-foreground))" }}
+                        >
+                          Day
+                        </Label>
+                        <select
+                          data-ocid="vedic_md_dob_day.input"
+                          value={dobMD.day}
+                          onChange={(e) =>
+                            setDobMD((prev) => ({
+                              ...prev,
+                              day: e.target.value,
+                            }))
+                          }
+                          className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
+                          style={{
+                            background: "oklch(var(--input))",
+                            border: "1px solid oklch(var(--border))",
+                            color: dobMD.day
+                              ? "oklch(var(--foreground))"
+                              : "oklch(var(--muted-foreground))",
+                          }}
+                        >
+                          <option value="" disabled>
+                            DD
+                          </option>
+                          {dayOptions.map((d) => (
+                            <option key={d} value={String(d)}>
+                              {String(d).padStart(2, "0")}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                    ))}
-                    {compError && (
+                      <div className="space-y-1.5">
+                        <Label
+                          className="text-xs uppercase tracking-wider font-body"
+                          style={{ color: "oklch(var(--muted-foreground))" }}
+                        >
+                          Month
+                        </Label>
+                        <select
+                          value={dobMD.month}
+                          onChange={(e) =>
+                            setDobMD((prev) => ({
+                              ...prev,
+                              month: e.target.value,
+                            }))
+                          }
+                          className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
+                          style={{
+                            background: "oklch(var(--input))",
+                            border: "1px solid oklch(var(--border))",
+                            color: dobMD.month
+                              ? "oklch(var(--foreground))"
+                              : "oklch(var(--muted-foreground))",
+                          }}
+                        >
+                          <option value="" disabled>
+                            MM
+                          </option>
+                          {monthOptions.map((m) => (
+                            <option key={m} value={String(m)}>
+                              {getMonthName(m)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label
+                          className="text-xs uppercase tracking-wider font-body"
+                          style={{ color: "oklch(var(--muted-foreground))" }}
+                        >
+                          Year
+                        </Label>
+                        <YearScrollPicker
+                          value={dobMD.year}
+                          onChange={(v) =>
+                            setDobMD((prev) => ({ ...prev, year: v }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    {dobMDError && (
                       <p
                         className="text-xs font-body"
                         style={{ color: "oklch(var(--destructive))" }}
-                        data-ocid="vedic_comparison.error_state"
                       >
-                        {compError}
+                        {dobMDError}
                       </p>
                     )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label
+                          className="text-xs uppercase tracking-wider font-body"
+                          style={{ color: "oklch(var(--muted-foreground))" }}
+                        >
+                          From Year
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1900}
+                          max={2200}
+                          value={fromYearMD}
+                          onChange={(e) =>
+                            setFromYearMD(
+                              Number.parseInt(e.target.value, 10) || fromYearMD,
+                            )
+                          }
+                          className="font-body"
+                          style={{
+                            background: "oklch(var(--input))",
+                            borderColor: "oklch(var(--border))",
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label
+                          className="text-xs uppercase tracking-wider font-body"
+                          style={{ color: "oklch(var(--muted-foreground))" }}
+                        >
+                          To Year
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1900}
+                          max={2200}
+                          value={toYearMD}
+                          onChange={(e) =>
+                            setToYearMD(
+                              Number.parseInt(e.target.value, 10) || toYearMD,
+                            )
+                          }
+                          className="font-body"
+                          style={{
+                            background: "oklch(var(--input))",
+                            borderColor: "oklch(var(--border))",
+                          }}
+                        />
+                      </div>
+                    </div>
                     <Button
-                      onClick={handleShowComparison}
-                      data-ocid="vedic_comparison.primary_button"
+                      data-ocid="vedic_md_show.primary_button"
+                      onClick={() => {
+                        const day = Number.parseInt(dobMD.day, 10);
+                        const month = Number.parseInt(dobMD.month, 10);
+                        const year = Number.parseInt(dobMD.year, 10);
+                        if (!dobMD.day || !dobMD.month || !dobMD.year) {
+                          setDobMDError(
+                            "Please select a complete date of birth.",
+                          );
+                          return;
+                        }
+                        const err = validateDOB(day, month, year);
+                        if (err) {
+                          setDobMDError(err);
+                          return;
+                        }
+                        setDobMDError("");
+                        setResultMD(
+                          calculateNumerology(formatDOB(day, month, year)),
+                        );
+                        setShowYearChartsMD(true);
+                      }}
                       className="w-full font-body font-semibold tracking-wide"
                       style={{
                         background: "oklch(var(--primary))",
                         color: "oklch(var(--primary-foreground))",
                       }}
                     >
-                      Compare Charts
+                      Show Year Charts
                     </Button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="comparison-result"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="space-y-4"
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowComparison(false)}
-                      data-ocid="vedic_comparison_back.secondary_button"
-                      className="font-body gap-2"
-                    >
-                      <ArrowLeft className="w-4 h-4" /> Back
-                    </Button>
-                    {p1Result && p2Result && (
-                      <div className="space-y-3">
-                        {/* Chart type tabs */}
-                        <div
-                          className="flex gap-1 rounded-lg p-1"
-                          style={{ background: "oklch(var(--muted))" }}
-                        >
-                          {(["natal", "year"] as const).map((tab) => (
-                            <button
-                              type="button"
-                              key={tab}
-                              data-ocid={`compare_chart.${tab}.tab`}
-                              onClick={() => setCompareChartTab(tab)}
-                              className="flex-1 py-1.5 rounded-md text-xs font-semibold font-body transition-all"
-                              style={{
-                                background:
-                                  compareChartTab === tab
-                                    ? "oklch(var(--card))"
-                                    : "transparent",
-                                color:
-                                  compareChartTab === tab
-                                    ? "oklch(var(--primary))"
-                                    : "oklch(var(--muted-foreground))",
-                                boxShadow:
-                                  compareChartTab === tab
-                                    ? "0 1px 3px oklch(0 0 0 / 0.1)"
-                                    : "none",
-                              }}
-                            >
-                              {tab === "natal"
-                                ? "Natal"
-                                : "Year · Month · Dasa"}
-                            </button>
-                          ))}
-                        </div>
+                  </div>
 
-                        {compareChartTab === "natal" && (
-                          <div className="grid grid-cols-2 gap-3">
-                            {[
-                              { label: "Person 1", r: p1Result },
-                              { label: "Person 2", r: p2Result },
-                            ].map(({ label, r }) => (
-                              <div
-                                key={label}
-                                className="rounded-lg p-3 space-y-2"
-                                style={{
-                                  background: "oklch(var(--card))",
-                                  border: "1px solid oklch(var(--border))",
-                                }}
-                              >
-                                <h3
-                                  className="font-display text-sm font-semibold"
-                                  style={{ color: "oklch(var(--primary))" }}
-                                >
-                                  {label}
-                                </h3>
-                                <div className="flex gap-3">
-                                  <span
-                                    className="font-body text-xs"
-                                    style={{ color: "#dc2626" }}
-                                  >
-                                    B: {r.basicNumber}
-                                  </span>
-                                  <span
-                                    className="font-body text-xs"
-                                    style={{ color: "#eab308" }}
-                                  >
-                                    D: {r.destinyNumber}
-                                  </span>
-                                </div>
-                                <NatalChart
-                                  cellCounts={r.cellCounts}
-                                  basicNumber={r.basicNumber}
-                                  destinyNumber={r.destinyNumber}
-                                  animate={false}
-                                  compact={true}
-                                  hideHeader={true}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {compareChartTab === "year" && (
-                          <div className="space-y-6">
-                            {[
-                              { label: "Person 1", r: p1Result, dob: p1Dob },
-                              { label: "Person 2", r: p2Result, dob: p2Dob },
-                            ].map(({ label, r, dob }) => (
-                              <div key={label} className="space-y-2">
-                                <h3
-                                  className="font-display text-sm font-semibold px-1"
-                                  style={{ color: "oklch(var(--primary))" }}
-                                >
-                                  {label} — B: {r.basicNumber} · D:{" "}
-                                  {r.destinyNumber}
-                                </h3>
-                                <YearChartGrid
-                                  day={Number.parseInt(dob.day, 10)}
-                                  month={Number.parseInt(dob.month, 10)}
-                                  year={Number.parseInt(dob.year, 10)}
-                                  basicNumber={r.basicNumber}
-                                  destinyNumber={r.destinyNumber}
-                                  natalCellCounts={r.cellCounts}
-                                  fromYear={new Date().getFullYear()}
-                                  toYear={new Date().getFullYear() + 5}
-                                  canAccessMonth={true}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </TabsContent>
-
-          {/* Month/Days Tab */}
-          <TabsContent value="monthdays" className="mt-0">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div
-                className="rounded-lg p-5 space-y-4"
-                style={{
-                  background: "oklch(var(--card))",
-                  border: "1px solid oklch(var(--border))",
-                }}
-              >
-                <h2
-                  className="font-display text-lg font-semibold"
-                  style={{ color: "oklch(var(--primary))" }}
-                >
-                  Month &amp; Day Charts
-                </h2>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-xs uppercase tracking-wider font-body"
-                      style={{ color: "oklch(var(--muted-foreground))" }}
-                    >
-                      Day
-                    </Label>
-                    <select
-                      data-ocid="vedic_md_dob_day.input"
-                      value={dobMD.day}
-                      onChange={(e) =>
-                        setDobMD((prev) => ({ ...prev, day: e.target.value }))
-                      }
-                      className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
-                      style={{
-                        background: "oklch(var(--input))",
-                        border: "1px solid oklch(var(--border))",
-                        color: dobMD.day
-                          ? "oklch(var(--foreground))"
-                          : "oklch(var(--muted-foreground))",
-                      }}
-                    >
-                      <option value="" disabled>
-                        DD
-                      </option>
-                      {dayOptions.map((d) => (
-                        <option key={d} value={String(d)}>
-                          {String(d).padStart(2, "0")}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-xs uppercase tracking-wider font-body"
-                      style={{ color: "oklch(var(--muted-foreground))" }}
-                    >
-                      Month
-                    </Label>
-                    <select
-                      value={dobMD.month}
-                      onChange={(e) =>
-                        setDobMD((prev) => ({ ...prev, month: e.target.value }))
-                      }
-                      className="w-full h-9 px-3 rounded-md text-sm font-body appearance-none cursor-pointer"
-                      style={{
-                        background: "oklch(var(--input))",
-                        border: "1px solid oklch(var(--border))",
-                        color: dobMD.month
-                          ? "oklch(var(--foreground))"
-                          : "oklch(var(--muted-foreground))",
-                      }}
-                    >
-                      <option value="" disabled>
-                        MM
-                      </option>
-                      {monthOptions.map((m) => (
-                        <option key={m} value={String(m)}>
-                          {getMonthName(m)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-xs uppercase tracking-wider font-body"
-                      style={{ color: "oklch(var(--muted-foreground))" }}
-                    >
-                      Year
-                    </Label>
-                    <YearScrollPicker
-                      value={dobMD.year}
-                      onChange={(v) =>
-                        setDobMD((prev) => ({ ...prev, year: v }))
-                      }
-                    />
-                  </div>
-                </div>
-                {dobMDError && (
-                  <p
-                    className="text-xs font-body"
-                    style={{ color: "oklch(var(--destructive))" }}
-                  >
-                    {dobMDError}
-                  </p>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-xs uppercase tracking-wider font-body"
-                      style={{ color: "oklch(var(--muted-foreground))" }}
-                    >
-                      From Year
-                    </Label>
-                    <Input
-                      type="number"
-                      min={1900}
-                      max={2200}
-                      value={fromYearMD}
-                      onChange={(e) =>
-                        setFromYearMD(
-                          Number.parseInt(e.target.value, 10) || fromYearMD,
-                        )
-                      }
-                      className="font-body"
-                      style={{
-                        background: "oklch(var(--input))",
-                        borderColor: "oklch(var(--border))",
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-xs uppercase tracking-wider font-body"
-                      style={{ color: "oklch(var(--muted-foreground))" }}
-                    >
-                      To Year
-                    </Label>
-                    <Input
-                      type="number"
-                      min={1900}
-                      max={2200}
-                      value={toYearMD}
-                      onChange={(e) =>
-                        setToYearMD(
-                          Number.parseInt(e.target.value, 10) || toYearMD,
-                        )
-                      }
-                      className="font-body"
-                      style={{
-                        background: "oklch(var(--input))",
-                        borderColor: "oklch(var(--border))",
-                      }}
-                    />
-                  </div>
-                </div>
-                <Button
-                  data-ocid="vedic_md_show.primary_button"
-                  onClick={() => {
-                    const day = Number.parseInt(dobMD.day, 10);
-                    const month = Number.parseInt(dobMD.month, 10);
-                    const year = Number.parseInt(dobMD.year, 10);
-                    if (!dobMD.day || !dobMD.month || !dobMD.year) {
-                      setDobMDError("Please select a complete date of birth.");
-                      return;
-                    }
-                    const err = validateDOB(day, month, year);
-                    if (err) {
-                      setDobMDError(err);
-                      return;
-                    }
-                    setDobMDError("");
-                    setResultMD(
-                      calculateNumerology(formatDOB(day, month, year)),
-                    );
-                    setShowYearChartsMD(true);
-                  }}
-                  className="w-full font-body font-semibold tracking-wide"
-                  style={{
-                    background: "oklch(var(--primary))",
-                    color: "oklch(var(--primary-foreground))",
-                  }}
-                >
-                  Show Year Charts
-                </Button>
-              </div>
-
-              {showYearChartsMD && resultMD && (
-                <div className="mt-4">
-                  <YearChartGrid
-                    day={Number.parseInt(dobMD.day, 10)}
-                    month={Number.parseInt(dobMD.month, 10)}
-                    year={Number.parseInt(dobMD.year, 10)}
-                    basicNumber={resultMD.basicNumber}
-                    destinyNumber={resultMD.destinyNumber}
-                    natalCellCounts={resultMD.cellCounts}
-                    fromYear={fromYearMD}
-                    toYear={toYearMD}
-                    canAccessMonth={sectionLevel >= 2}
-                    onMonthLocked={() => setShowMonthGate(true)}
-                  />
-                </div>
+                  {showYearChartsMD && resultMD && (
+                    <div className="mt-4">
+                      <YearChartGrid
+                        day={Number.parseInt(dobMD.day, 10)}
+                        month={Number.parseInt(dobMD.month, 10)}
+                        year={Number.parseInt(dobMD.year, 10)}
+                        basicNumber={resultMD.basicNumber}
+                        destinyNumber={resultMD.destinyNumber}
+                        natalCellCounts={resultMD.cellCounts}
+                        fromYear={fromYearMD}
+                        toYear={toYearMD}
+                        canAccessMonth={sectionLevel >= 2}
+                        onMonthLocked={() => setShowMonthGate(true)}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </motion.div>
           </TabsContent>
 
           {/* Predict Tab */}
           <TabsContent value="predict" className="mt-0">
-            <PredictTab onOpenLogin={() => setLoginOpen(true)} />
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {!auth || sectionLevel < 2 ? (
+                <div
+                  className="rounded-lg p-10 flex flex-col items-center text-center gap-4"
+                  data-ocid="vedic_predict_locked.panel"
+                  style={{
+                    background: "oklch(var(--card))",
+                    border: "1px solid oklch(var(--border))",
+                  }}
+                >
+                  <Lock
+                    className="w-10 h-10 opacity-30"
+                    style={{ color: "oklch(var(--primary))" }}
+                  />
+                  <p
+                    className="font-display text-base font-semibold"
+                    style={{ color: "oklch(var(--primary))" }}
+                  >
+                    Advanced Access Required
+                  </p>
+                  <p
+                    className="font-body text-sm"
+                    style={{ color: "oklch(var(--muted-foreground))" }}
+                  >
+                    Predictions require Advanced access. Please log in or
+                    contact admin.
+                  </p>
+                  {!auth && (
+                    <Button
+                      data-ocid="vedic_predict_login.primary_button"
+                      onClick={() => openLoginModal(false)}
+                      style={{
+                        background: "oklch(var(--primary))",
+                        color: "oklch(var(--primary-foreground))",
+                      }}
+                      className="font-body font-semibold gap-2"
+                    >
+                      <LogIn className="w-4 h-4" /> Login
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4" data-ocid="vedic_predict.panel">
+                  <h2
+                    className="font-display text-lg font-semibold"
+                    style={{ color: "oklch(var(--primary))" }}
+                  >
+                    Choose Prediction Type
+                  </h2>
+                  <p
+                    className="font-body text-sm"
+                    style={{ color: "oklch(var(--muted-foreground))" }}
+                  >
+                    Select a prediction type below. Enter your date of birth on
+                    the <strong>New</strong> tab first to see your Natal Chart.
+                  </p>
+                  {[
+                    {
+                      label: "Basic Nature",
+                      desc: "Discover your core personality traits and natural tendencies based on your birth numbers.",
+                      icon: "🌱",
+                      type: "basic",
+                      ocid: "predict_basic.primary_button",
+                    },
+                    {
+                      label: "Advance Nature Prediction",
+                      desc: "Deep dive into your strengths, challenges, and life patterns across all chart numbers.",
+                      icon: "🔮",
+                      type: "advance",
+                      ocid: "predict_advance.primary_button",
+                    },
+                    {
+                      label: "Nature + Career Prediction",
+                      desc: "Full personality analysis followed by career guidance for each of your chart numbers.",
+                      icon: "💼",
+                      type: "career",
+                      ocid: "predict_career.primary_button",
+                    },
+                    {
+                      label: "Compare Charts",
+                      desc: "Enter two dates of birth and compare Natal Charts side by side with compatibility notes.",
+                      icon: "⚖️",
+                      type: null,
+                      ocid: "predict_compare.primary_button",
+                    },
+                  ].map((item, idx) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      data-ocid={item.ocid}
+                      onClick={() => {
+                        if (item.type) {
+                          const stored = sessionStorage.getItem(
+                            "numerology_current_result",
+                          );
+                          if (!stored) {
+                            toast.error(
+                              "Please enter a date of birth on the New tab first.",
+                            );
+                            return;
+                          }
+                          sessionStorage.setItem(
+                            "numerology_prediction_type",
+                            item.type,
+                          );
+                          navigate({ to: "/numerology/prediction" });
+                        } else {
+                          setActiveTab("compare");
+                        }
+                      }}
+                      className="w-full rounded-lg p-5 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
+                      style={{
+                        background: "oklch(var(--card))",
+                        border: "1px solid oklch(var(--border))",
+                      }}
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="text-2xl shrink-0 mt-0.5">
+                          {item.icon}
+                        </span>
+                        <div className="flex-1">
+                          <p
+                            className="font-display font-semibold text-base"
+                            style={{ color: "oklch(var(--primary))" }}
+                          >
+                            {idx + 1}. {item.label}
+                          </p>
+                          <p
+                            className="font-body text-sm mt-1"
+                            style={{ color: "oklch(var(--muted-foreground))" }}
+                          >
+                            {item.desc}
+                          </p>
+                        </div>
+                        <span
+                          className="shrink-0 mt-1 opacity-40"
+                          style={{ color: "oklch(var(--primary))" }}
+                        >
+                          →
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </TabsContent>
         </Tabs>
       </main>
@@ -1583,8 +1959,11 @@ function AppInner({ onClose }: { onClose?: () => void }) {
                 <button
                   type="button"
                   onClick={() => setShowLoginPassword((v) => !v)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-60 hover:opacity-100 transition-opacity"
+                  style={{ color: "oklch(var(--muted-foreground))" }}
+                  aria-label={
+                    showLoginPassword ? "Hide password" : "Show password"
+                  }
                 >
                   {showLoginPassword ? (
                     <EyeOff className="w-4 h-4" />

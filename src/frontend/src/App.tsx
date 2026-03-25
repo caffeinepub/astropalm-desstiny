@@ -20,10 +20,14 @@ import HeroSection from "./components/HeroSection";
 import ProfileSetupModal from "./components/ProfileSetupModal";
 import ServicesSection from "./components/ServicesSection";
 import SpecialUniqueServiceSection from "./components/SpecialUniqueServiceSection";
+import VisitorQueryForm from "./components/VisitorQueryForm";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
+import HoroscopePage from "./pages/HoroscopePage";
 import NadiCardsPage from "./pages/NadiCardsPage";
 import NumerologyPage from "./pages/NumerologyPage";
+import PredictionDetailPage from "./pages/PredictionDetailPage";
+import PredictionOptionsPage from "./pages/PredictionOptionsPage";
 
 function HomePage() {
   const [showAdmin, setShowAdmin] = useState(false);
@@ -49,7 +53,7 @@ function HomePage() {
         <main className="overflow-x-hidden w-full">
           <HeroSection />
 
-          {/* Vedic Numerology Teaser */}
+          {/* Numerology Teaser */}
           <section
             id="numerology"
             className="py-16 flex flex-col items-center justify-center gap-6 bg-background"
@@ -61,7 +65,7 @@ function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              Vedic Numerology
+              Numerology
             </motion.h2>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -75,35 +79,56 @@ function HomePage() {
                 data-ocid="numerology.primary_button"
                 className="px-8 py-3 text-base font-semibold rounded-full"
               >
-                Explore Vedic Numerology
+                Explore Numerology
+              </Button>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+            >
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate({ to: "/horoscope" })}
+                data-ocid="horoscope.primary_button"
+                className="px-8 py-3 text-base font-semibold rounded-full border-green-700 text-green-700 hover:bg-green-50"
+              >
+                Horoscope
               </Button>
             </motion.div>
           </section>
 
-          {/* Nadi Cards Section */}
+          {/* Nadi Cards Teaser */}
           <section
             id="nadi-cards"
             className="py-16 flex flex-col items-center justify-center gap-6"
-            style={{ background: "#f5a623" }}
+            style={{
+              background: "linear-gradient(135deg, #fff8ee 0%, #fff3e0 100%)",
+            }}
           >
             <motion.h2
-              className="text-3xl md:text-5xl font-display font-bold text-white tracking-wide"
+              className="text-3xl md:text-5xl font-display font-bold tracking-wide"
+              style={{ color: "#c0392b" }}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              Vedic Nadi Cards
+              Nadi Cards
             </motion.h2>
             <motion.p
-              className="text-white/80 text-center max-w-sm text-sm px-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              className="text-center text-base max-w-md px-4"
+              style={{ color: "#555" }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
             >
-              Ancient card reading system revealing planetary influences on your
-              destiny.
+              Discover your destiny through ancient Nadi card readings. Pull
+              cards automatically or pick them yourself to reveal planetary and
+              house influences.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -114,14 +139,37 @@ function HomePage() {
               <Button
                 size="lg"
                 onClick={() => navigate({ to: "/nadi-cards" })}
-                data-ocid="nadi_cards.home_button"
+                data-ocid="nadi_cards.primary_button"
                 className="px-8 py-3 text-base font-semibold rounded-full"
-                style={{ background: "white", color: "#c0392b" }}
+                style={{
+                  background: "#c0392b",
+                  color: "white",
+                  border: "none",
+                }}
               >
-                Open Nadi Cards
+                Explore Nadi Cards
               </Button>
             </motion.div>
           </section>
+
+          {/* Visitor Query Section */}
+          <section id="send-query" className="py-16 bg-white">
+            <div className="max-w-xl mx-auto px-4">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-2">
+                  Send Us Your Query
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Have a question? Fill out the form below and we will get back
+                  to you.
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
+                <VisitorQueryForm />
+              </div>
+            </div>
+          </section>
+
           <section id="courses">
             <CoursesSection />
           </section>
@@ -157,17 +205,34 @@ const numerologyRoute = createRoute({
   path: "/numerology",
   component: NumerologyPage,
 });
-
 const nadiCardsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/nadi-cards",
   component: NadiCardsPage,
 });
+const predictionOptionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/numerology/prediction",
+  component: PredictionOptionsPage,
+});
+const predictionDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/numerology/prediction/$type",
+  component: PredictionDetailPage,
+});
 
+const horoscopeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/horoscope",
+  component: HoroscopePage,
+});
 const routeTree = rootRoute.addChildren([
   indexRoute,
   numerologyRoute,
   nadiCardsRoute,
+  predictionOptionsRoute,
+  predictionDetailRoute,
+  horoscopeRoute,
 ]);
 const history = createBrowserHistory();
 const router = createRouter({ routeTree, history });

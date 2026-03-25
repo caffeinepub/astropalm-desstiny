@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createActorWithConfig } from "../config";
+import { useActor } from "./useActor";
 
+const ADMIN_USERNAME = "vikaskharb00007@gmail.com";
+const ADMIN_PASSWORD = "Vikas00007@admin";
 const CHARTS_KEY = "vedic_saved_charts";
-const USERS_KEY = "vedic_admin_users";
+
+// ─── Chart type (localStorage-backed) ──────────────────────────────────────
 
 export interface Chart {
   id: bigint;
@@ -101,49 +106,36 @@ export function useDeleteChart() {
   });
 }
 
-export interface NumerologyUser {
-  username: string;
-  passwordHash: string;
-  sectionLevel: number;
-}
-
-function loadUsers(): NumerologyUser[] {
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as NumerologyUser[];
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users: NumerologyUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
+// ─── Auth Hooks ──────────────────────────────────────────────────────────────
 
 export function useLoginUser() {
+  const { actor } = useActor();
   return useMutation({
     mutationFn: async ({
       username,
       password,
     }: { username: string; password: string }) => {
-      const users = loadUsers();
-      const user = users.find((u) => u.username === username);
-      if (!user) throw new Error("User not found");
-      if (user.passwordHash !== password) throw new Error("Incorrect password");
-      return user.sectionLevel;
+      if (!actor) throw new Error("Actor not ready");
+      const level = await (actor as any).login(username, password);
+      return Number(level);
     },
   });
 }
 
 export function useListUsers() {
+  const { actor, isFetching } = useActor();
   return useQuery({
     queryKey: ["vedic_admin", "users"],
-    queryFn: () => loadUsers(),
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).listUsers(ADMIN_USERNAME, ADMIN_PASSWORD);
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useCreateUser() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -151,11 +143,14 @@ export function useCreateUser() {
       password,
       sectionLevel,
     }: { username: string; password: string; sectionLevel: number }) => {
-      const users = loadUsers();
-      if (users.find((u) => u.username === username)) {
-        throw new Error("User already exists");
-      }
-      saveUsers([...users, { username, passwordHash: password, sectionLevel }]);
+      if (!actor) throw new Error("Actor not ready");
+      return (actor as any).createUser(
+        ADMIN_USERNAME,
+        ADMIN_PASSWORD,
+        username,
+        password,
+        BigInt(sectionLevel),
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
@@ -164,13 +159,107 @@ export function useCreateUser() {
 }
 
 export function useDeleteUser() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (username: string) => {
-      saveUsers(loadUsers().filter((u) => u.username !== username));
+      if (!actor) throw new Error("Actor not ready");
+      return (actor as any).deleteUser(
+        ADMIN_USERNAME,
+        ADMIN_PASSWORD,
+        username,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
     },
+  });
+}
+
+export function useUpdateUserLevel() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      username,
+      sectionLevel,
+    }: { username: string; sectionLevel: number }) => {
+      if (!actor) throw new Error("Actor not ready");
+      // updateNumerologyUserLevel may not be in the interface, call via any
+      return (actor as any).updateNumerologyUserLevel(
+        username,
+        BigInt(sectionLevel),
+        ADMIN_PASSWORD,
+        ADMIN_USERNAME,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
+    },
+  });
+}
+
+export function useGetFreeEmailClaims() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["vedic_admin", "free_emails"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getFreeEmailClaims?.() ?? [];
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useClaimFreeAccess() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const anonActor = await createActorWithConfig();
+      return (anonActor as any).claimFreeAccess?.(email);
+    },
+  });
+}
+
+export function useCheckFreeAccess() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const anonActor = await createActorWithConfig();
+      return (anonActor as any).checkFreeAccessClaimed?.(email);
+    },
+  });
+}
+
+export function useSetUserAccessExpiry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      username,
+      durationDays,
+    }: { username: string; durationDays: number }) => {
+      if (!actor) throw new Error("Actor not ready");
+      return (actor as any).setUserAccessExpiry?.(
+        username,
+        BigInt(durationDays),
+        ADMIN_PASSWORD,
+        ADMIN_USERNAME,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vedic_admin", "users"] });
+    },
+  });
+}
+
+export function useGetUserAccessExpiry(username: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["vedic_admin", "expiry", username],
+    queryFn: async () => {
+      if (!actor) return null;
+      const result = await (actor as any).getUserAccessExpiry?.(username);
+      return result && result.length > 0 ? Number(result[0]) : null;
+    },
+    enabled: !!actor && !isFetching && !!username,
   });
 }

@@ -25,6 +25,30 @@ interface DOBState {
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
+const NUMBER_COLORS: Record<number, string> = {
+  1: "#ef4444",
+  2: "#f97316",
+  3: "#eab308",
+  4: "#22c55e",
+  5: "#14b8a6",
+  6: "#3b82f6",
+  7: "#6366f1",
+  8: "#a855f7",
+  9: "#ec4899",
+};
+
+const NUMBER_PLANETS: Record<number, string> = {
+  1: "Sun",
+  2: "Moon",
+  3: "Jupiter",
+  4: "Rahu",
+  5: "Mercury",
+  6: "Venus",
+  7: "Ketu",
+  8: "Saturn",
+  9: "Mars",
+};
+
 const NATURE_PREDICTIONS: Record<number, string> = {
   1: "Number 1 individuals are natural-born leaders with a strong sense of self-confidence and independence. They are driven by ambition, possess great willpower, and are often pioneers in their field. They have a magnetic personality and a desire to be first. However, they can be stubborn, dominating, and ego-driven. Their strength lies in their ability to initiate new projects and inspire others, but they must learn to collaborate and temper their pride.",
   2: "Number 2 individuals are gentle, intuitive, and deeply empathetic. They are the peacemakers of the numerological world, always seeking harmony and balance in relationships. They have a strong sense of diplomacy and are excellent at seeing multiple perspectives. Their sensitivity can sometimes make them indecisive or overly dependent on others' approval. Their greatest gift is their ability to nurture, support, and bring people together with grace and compassion.",
@@ -51,10 +75,12 @@ const CAREER_PREDICTIONS: Record<number, string> = {
 
 function SectionHeader({
   title,
+  description,
   open,
   onToggle,
 }: {
   title: string;
+  description?: string;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -62,11 +88,29 @@ function SectionHeader({
     <button
       type="button"
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-4 py-3 font-display font-semibold text-sm tracking-wider text-white rounded-t-lg"
+      className="w-full flex items-start justify-between px-4 py-3 rounded-t-lg text-left"
       style={{ background: "#2E8B57" }}
     >
-      <span>{title}</span>
-      {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      <div className="flex-1 pr-2">
+        <span className="font-display font-semibold text-sm tracking-wider text-white block">
+          {title}
+        </span>
+        {description && (
+          <span
+            className="text-xs font-body mt-0.5 block"
+            style={{ color: "rgba(255,255,255,0.75)" }}
+          >
+            {description}
+          </span>
+        )}
+      </div>
+      <div className="mt-0.5 flex-shrink-0">
+        {open ? (
+          <ChevronUp size={16} className="text-white" />
+        ) : (
+          <ChevronDown size={16} className="text-white" />
+        )}
+      </div>
     </button>
   );
 }
@@ -75,45 +119,54 @@ function NumberCard({
   num,
   text,
   highlight,
-  label,
+  highlightLabel,
 }: {
   num: number;
   text: string;
   highlight?: boolean;
-  label?: string;
+  highlightLabel?: string;
 }) {
+  const color = NUMBER_COLORS[num];
+  const planet = NUMBER_PLANETS[num];
+
   return (
     <div
       className="rounded-lg overflow-hidden"
       style={{
-        border: highlight
-          ? "2px solid #2E8B57"
-          : "1px solid oklch(var(--border))",
+        border: highlight ? `2px solid ${color}` : "1px solid #e5e7eb",
         background: "white",
       }}
     >
       <div
         className="px-3 py-2 flex items-center gap-2"
-        style={{ background: highlight ? "#2E8B57" : "#e8f5e9" }}
+        style={{ background: highlight ? color : `${color}18` }}
       >
-        <span
-          className="font-display font-bold text-lg"
-          style={{ color: highlight ? "white" : "#2E8B57" }}
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center font-display font-bold text-sm text-white flex-shrink-0"
+          style={{ background: color }}
         >
           {num}
-        </span>
-        {label && (
+        </div>
+        <div>
           <span
-            className="text-xs font-body"
-            style={{ color: highlight ? "rgba(255,255,255,0.85)" : "#2E8B57" }}
+            className="font-display font-semibold text-sm block"
+            style={{ color: highlight ? "white" : color }}
           >
-            — {label}
+            Number {num} — {planet}
           </span>
-        )}
+          {highlight && highlightLabel && (
+            <span
+              className="text-xs font-body"
+              style={{ color: "rgba(255,255,255,0.85)" }}
+            >
+              {highlightLabel}
+            </span>
+          )}
+        </div>
       </div>
       <p
         className="p-3 text-sm font-body leading-relaxed"
-        style={{ color: "#333" }}
+        style={{ color: "#374151" }}
       >
         {text}
       </p>
@@ -340,7 +393,7 @@ export function PredictTab({ onOpenLogin }: PredictTabProps) {
               <div className="text-center">
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center font-display text-2xl font-bold text-white mx-auto"
-                  style={{ background: "#2E8B57" }}
+                  style={{ background: NUMBER_COLORS[result.basicNumber] }}
                 >
                   {result.basicNumber}
                 </div>
@@ -354,7 +407,7 @@ export function PredictTab({ onOpenLogin }: PredictTabProps) {
               <div className="text-center">
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center font-display text-2xl font-bold text-white mx-auto"
-                  style={{ background: "oklch(var(--primary))" }}
+                  style={{ background: NUMBER_COLORS[result.destinyNumber] }}
                 >
                   {result.destinyNumber}
                 </div>
@@ -375,276 +428,316 @@ export function PredictTab({ onOpenLogin }: PredictTabProps) {
               animate={true}
             />
 
-            {/* 4 collapsible sections */}
-
-            {/* Section 1: Nature */}
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #2E8B57" }}
-            >
-              <SectionHeader
-                title="1. NATURE PREDICTION"
-                open={openSection === 1}
-                onToggle={() => toggleSection(1)}
-              />
-              <AnimatePresence>
-                {openSection === 1 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div
-                      className="p-3 space-y-3"
-                      style={{ background: "#f9fafb" }}
-                    >
-                      {Object.entries(NATURE_PREDICTIONS).map(([n, text]) => (
-                        <NumberCard
-                          key={n}
-                          num={Number(n)}
-                          text={text}
-                          highlight={Number(n) === result.basicNumber}
-                          label={
-                            Number(n) === result.basicNumber
-                              ? "Your Basic Number"
-                              : undefined
-                          }
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Section 2: Career */}
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #2E8B57" }}
-            >
-              <SectionHeader
-                title="2. CAREER PREDICTION"
-                open={openSection === 2}
-                onToggle={() => toggleSection(2)}
-              />
-              <AnimatePresence>
-                {openSection === 2 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div
-                      className="p-3 space-y-3"
-                      style={{ background: "#f9fafb" }}
-                    >
-                      {Object.entries(CAREER_PREDICTIONS).map(([n, text]) => (
-                        <NumberCard
-                          key={n}
-                          num={Number(n)}
-                          text={text}
-                          highlight={Number(n) === result.destinyNumber}
-                          label={
-                            Number(n) === result.destinyNumber
-                              ? "Your Destiny Number"
-                              : undefined
-                          }
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Section 3: Nature + Career */}
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #2E8B57" }}
-            >
-              <SectionHeader
-                title="3. NATURE + CAREER PREDICTION"
-                open={openSection === 3}
-                onToggle={() => toggleSection(3)}
-              />
-              <AnimatePresence>
-                {openSection === 3 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div
-                      className="p-3 space-y-3"
-                      style={{ background: "#f9fafb" }}
+            {/* 4 sections in 2x2 grid on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              {/* Section 1: Nature */}
+              <div
+                className="rounded-lg overflow-hidden"
+                style={{ border: "1px solid #2E8B57" }}
+              >
+                <SectionHeader
+                  title="1. NATURE PREDICTION"
+                  description="Personality traits and nature analysis based on your numerology numbers"
+                  open={openSection === 1}
+                  onToggle={() => toggleSection(1)}
+                />
+                <AnimatePresence>
+                  {openSection === 1 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
                     >
                       <div
-                        className="rounded-lg overflow-hidden"
-                        style={{
-                          border: "2px solid #2E8B57",
-                          background: "white",
-                        }}
+                        className="p-3 space-y-3"
+                        style={{ background: "#f9fafb" }}
                       >
-                        <div
-                          className="px-4 py-2"
-                          style={{ background: "#2E8B57" }}
-                        >
-                          <p className="font-display font-bold text-white text-sm">
-                            Your Nature — Basic Number {result.basicNumber}
-                          </p>
-                        </div>
-                        <p
-                          className="p-4 text-sm font-body leading-relaxed"
-                          style={{ color: "#333" }}
-                        >
-                          {NATURE_PREDICTIONS[result.basicNumber]}
-                        </p>
+                        {Object.entries(NATURE_PREDICTIONS).map(([n, text]) => (
+                          <NumberCard
+                            key={n}
+                            num={Number(n)}
+                            text={text}
+                            highlight={Number(n) === result.basicNumber}
+                            highlightLabel={
+                              Number(n) === result.basicNumber
+                                ? "Your Basic Number"
+                                : undefined
+                            }
+                          />
+                        ))}
                       </div>
-                      <div
-                        className="rounded-lg overflow-hidden"
-                        style={{
-                          border: "2px solid oklch(var(--primary))",
-                          background: "white",
-                        }}
-                      >
-                        <div
-                          className="px-4 py-2"
-                          style={{ background: "oklch(var(--primary))" }}
-                        >
-                          <p className="font-display font-bold text-white text-sm">
-                            Your Career — Destiny Number {result.destinyNumber}
-                          </p>
-                        </div>
-                        <p
-                          className="p-4 text-sm font-body leading-relaxed"
-                          style={{ color: "#333" }}
-                        >
-                          {CAREER_PREDICTIONS[result.destinyNumber]}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            {/* Section 4: Compare */}
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #2E8B57" }}
-            >
-              <SectionHeader
-                title="4. COMPARE CHARTS"
-                open={openSection === 4}
-                onToggle={() => toggleSection(4)}
-              />
-              <AnimatePresence>
-                {openSection === 4 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div
-                      className="p-3 space-y-4"
-                      style={{ background: "#f9fafb" }}
+              {/* Section 2: Career */}
+              <div
+                className="rounded-lg overflow-hidden"
+                style={{ border: "1px solid #2E8B57" }}
+              >
+                <SectionHeader
+                  title="2. CAREER PREDICTION"
+                  description="Career guidance and professional strengths based on your destiny number"
+                  open={openSection === 2}
+                  onToggle={() => toggleSection(2)}
+                />
+                <AnimatePresence>
+                  {openSection === 2 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
                     >
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {/* Chart 1 */}
-                        <div
-                          className="rounded-lg p-3 space-y-3"
-                          style={{
-                            background: "white",
-                            border: "1px solid oklch(var(--border))",
-                          }}
-                        >
-                          <h4
-                            className="font-display font-semibold text-sm"
-                            style={{ color: "#2E8B57" }}
-                          >
-                            Person 1
-                          </h4>
-                          <DOBForm
-                            dob={dob1}
-                            setDob={setDob1}
-                            onSubmit={() => {
-                              if (!dob1.day || !dob1.month || !dob1.year)
-                                return;
-                              setCompare1(
-                                calculateNumerology(
-                                  formatDOB(
-                                    Number(dob1.day),
-                                    Number(dob1.month),
-                                    Number(dob1.year),
-                                  ),
-                                ),
-                              );
-                            }}
-                            ocidPrefix="predict_compare1"
+                      <div
+                        className="p-3 space-y-3"
+                        style={{ background: "#f9fafb" }}
+                      >
+                        {Object.entries(CAREER_PREDICTIONS).map(([n, text]) => (
+                          <NumberCard
+                            key={n}
+                            num={Number(n)}
+                            text={text}
+                            highlight={Number(n) === result.destinyNumber}
+                            highlightLabel={
+                              Number(n) === result.destinyNumber
+                                ? "Your Destiny Number"
+                                : undefined
+                            }
                           />
-                          {compare1 && (
-                            <NatalChart
-                              cellCounts={compare1.cellCounts}
-                              basicNumber={compare1.basicNumber}
-                              destinyNumber={compare1.destinyNumber}
-                              compact={true}
-                            />
-                          )}
-                        </div>
-                        {/* Chart 2 */}
-                        <div
-                          className="rounded-lg p-3 space-y-3"
-                          style={{
-                            background: "white",
-                            border: "1px solid oklch(var(--border))",
-                          }}
-                        >
-                          <h4
-                            className="font-display font-semibold text-sm"
-                            style={{ color: "#2E8B57" }}
-                          >
-                            Person 2
-                          </h4>
-                          <DOBForm
-                            dob={dob2}
-                            setDob={setDob2}
-                            onSubmit={() => {
-                              if (!dob2.day || !dob2.month || !dob2.year)
-                                return;
-                              setCompare2(
-                                calculateNumerology(
-                                  formatDOB(
-                                    Number(dob2.day),
-                                    Number(dob2.month),
-                                    Number(dob2.year),
-                                  ),
-                                ),
-                              );
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Section 3: Nature + Career */}
+              <div
+                className="rounded-lg overflow-hidden"
+                style={{ border: "1px solid #2E8B57" }}
+              >
+                <SectionHeader
+                  title="3. NATURE + CAREER PREDICTION"
+                  description="Combined analysis of your personality and career path for your specific numbers"
+                  open={openSection === 3}
+                  onToggle={() => toggleSection(3)}
+                />
+                <AnimatePresence>
+                  {openSection === 3 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-3" style={{ background: "#f9fafb" }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Nature card */}
+                          <div
+                            className="rounded-lg overflow-hidden"
+                            style={{
+                              border: `2px solid ${NUMBER_COLORS[result.basicNumber]}`,
+                              background: "white",
                             }}
-                            ocidPrefix="predict_compare2"
-                          />
-                          {compare2 && (
-                            <NatalChart
-                              cellCounts={compare2.cellCounts}
-                              basicNumber={compare2.basicNumber}
-                              destinyNumber={compare2.destinyNumber}
-                              compact={true}
-                            />
-                          )}
+                          >
+                            <div
+                              className="px-3 py-2 flex items-center gap-2"
+                              style={{
+                                background: NUMBER_COLORS[result.basicNumber],
+                              }}
+                            >
+                              <div
+                                className="w-7 h-7 rounded-full flex items-center justify-center font-display font-bold text-sm text-white flex-shrink-0"
+                                style={{ background: "rgba(255,255,255,0.25)" }}
+                              >
+                                {result.basicNumber}
+                              </div>
+                              <div>
+                                <p className="font-display font-bold text-white text-sm">
+                                  Your Nature
+                                </p>
+                                <p
+                                  className="text-xs"
+                                  style={{ color: "rgba(255,255,255,0.8)" }}
+                                >
+                                  Basic Number {result.basicNumber} —{" "}
+                                  {NUMBER_PLANETS[result.basicNumber]}
+                                </p>
+                              </div>
+                            </div>
+                            <p
+                              className="p-3 text-sm font-body leading-relaxed"
+                              style={{ color: "#374151" }}
+                            >
+                              {NATURE_PREDICTIONS[result.basicNumber]}
+                            </p>
+                          </div>
+                          {/* Career card */}
+                          <div
+                            className="rounded-lg overflow-hidden"
+                            style={{
+                              border: `2px solid ${NUMBER_COLORS[result.destinyNumber]}`,
+                              background: "white",
+                            }}
+                          >
+                            <div
+                              className="px-3 py-2 flex items-center gap-2"
+                              style={{
+                                background: NUMBER_COLORS[result.destinyNumber],
+                              }}
+                            >
+                              <div
+                                className="w-7 h-7 rounded-full flex items-center justify-center font-display font-bold text-sm text-white flex-shrink-0"
+                                style={{ background: "rgba(255,255,255,0.25)" }}
+                              >
+                                {result.destinyNumber}
+                              </div>
+                              <div>
+                                <p className="font-display font-bold text-white text-sm">
+                                  Your Career
+                                </p>
+                                <p
+                                  className="text-xs"
+                                  style={{ color: "rgba(255,255,255,0.8)" }}
+                                >
+                                  Destiny Number {result.destinyNumber} —{" "}
+                                  {NUMBER_PLANETS[result.destinyNumber]}
+                                </p>
+                              </div>
+                            </div>
+                            <p
+                              className="p-3 text-sm font-body leading-relaxed"
+                              style={{ color: "#374151" }}
+                            >
+                              {CAREER_PREDICTIONS[result.destinyNumber]}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Section 4: Compare */}
+              <div
+                className="rounded-lg overflow-hidden"
+                style={{ border: "1px solid #2E8B57" }}
+              >
+                <SectionHeader
+                  title="4. COMPARE CHARTS"
+                  description="Compare two natal charts side by side to analyze compatibility"
+                  open={openSection === 4}
+                  onToggle={() => toggleSection(4)}
+                />
+                <AnimatePresence>
+                  {openSection === 4 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div
+                        className="p-3 space-y-4"
+                        style={{ background: "#f9fafb" }}
+                      >
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          {/* Chart 1 */}
+                          <div
+                            className="rounded-lg p-3 space-y-3"
+                            style={{
+                              background: "white",
+                              border: "1px solid oklch(var(--border))",
+                            }}
+                          >
+                            <h4
+                              className="font-display font-semibold text-sm"
+                              style={{ color: "#2E8B57" }}
+                            >
+                              Person 1
+                            </h4>
+                            <DOBForm
+                              dob={dob1}
+                              setDob={setDob1}
+                              onSubmit={() => {
+                                if (!dob1.day || !dob1.month || !dob1.year)
+                                  return;
+                                setCompare1(
+                                  calculateNumerology(
+                                    formatDOB(
+                                      Number(dob1.day),
+                                      Number(dob1.month),
+                                      Number(dob1.year),
+                                    ),
+                                  ),
+                                );
+                              }}
+                              ocidPrefix="predict_compare1"
+                            />
+                            {compare1 && (
+                              <NatalChart
+                                cellCounts={compare1.cellCounts}
+                                basicNumber={compare1.basicNumber}
+                                destinyNumber={compare1.destinyNumber}
+                                compact={true}
+                              />
+                            )}
+                          </div>
+                          {/* Chart 2 */}
+                          <div
+                            className="rounded-lg p-3 space-y-3"
+                            style={{
+                              background: "white",
+                              border: "1px solid oklch(var(--border))",
+                            }}
+                          >
+                            <h4
+                              className="font-display font-semibold text-sm"
+                              style={{ color: "#2E8B57" }}
+                            >
+                              Person 2
+                            </h4>
+                            <DOBForm
+                              dob={dob2}
+                              setDob={setDob2}
+                              onSubmit={() => {
+                                if (!dob2.day || !dob2.month || !dob2.year)
+                                  return;
+                                setCompare2(
+                                  calculateNumerology(
+                                    formatDOB(
+                                      Number(dob2.day),
+                                      Number(dob2.month),
+                                      Number(dob2.year),
+                                    ),
+                                  ),
+                                );
+                              }}
+                              ocidPrefix="predict_compare2"
+                            />
+                            {compare2 && (
+                              <NatalChart
+                                cellCounts={compare2.cellCounts}
+                                basicNumber={compare2.basicNumber}
+                                destinyNumber={compare2.destinyNumber}
+                                compact={true}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         )}

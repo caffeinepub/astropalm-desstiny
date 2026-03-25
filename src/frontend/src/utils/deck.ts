@@ -81,12 +81,6 @@ export function getBlueCount(planet: string): number | "repeat" {
   return 2;
 }
 
-export function getPlanetRuleLabel(planet: string): string {
-  const count = getBlueCount(planet);
-  if (count === "repeat") return `${planet} → Pulls until repeat`;
-  return `${planet} → ${count} House Card${count > 1 ? "s" : ""}`;
-}
-
 export const PLANET_SYMBOLS: Record<string, string> = {
   King: "♛",
   Queen: "♕",
@@ -110,7 +104,7 @@ export const HOUSE_SYMBOLS: Record<number, string> = {
   5: "♡",
   6: "⚠",
   7: "⚖",
-  8: "🝗",
+  8: "🕗",
   9: "✿",
   10: "♛",
   11: "★",
